@@ -49,7 +49,8 @@ namespace smSlicerCLI
                 }
                 foreach (string s in o.SettingsFiles)
                 {
-                    if (!File.Exists(s)){
+                    if (!File.Exists(s))
+                    {
                         Console.WriteLine("Must provide valid settings file path.");
                         return;
                     }
@@ -63,7 +64,7 @@ namespace smSlicerCLI
                     MissingMemberHandling = MissingMemberHandling.Error,
 
                 };
-                
+
                 // load settings from files
                 foreach (string s in o.SettingsFiles)
                 {
@@ -153,10 +154,14 @@ namespace smSlicerCLI
                     }
                     Console.WriteLine(" done.");
 
+                    Console.WriteLine("".PadRight(79, '-'));
+                    foreach (string line in printGen.TotalExtrusionReport)
+                    {
+                        Console.WriteLine(line);
+                    }
+                    Console.WriteLine("".PadRight(79, '-'));
                 }
-
             });
-
             return;
         }
     }
