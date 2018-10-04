@@ -153,6 +153,14 @@ namespace smSlicerCLI
                     }
                     Console.WriteLine(" done.");
 
+                    Console.WriteLine("".PadRight(79, '-'));
+                    foreach (string line in printGen.TotalPrintTimeStatistics.ToStringList())
+                    {
+                        Console.WriteLine(line);
+                    }
+                    Console.WriteLine("".PadRight(79, '-'));
+
+
                 }
 
             });
