@@ -160,6 +160,11 @@ namespace smSlicerCLI
                         Console.WriteLine(line);
                     }
                     Console.WriteLine("".PadRight(79, '-'));
+                    foreach (string line in printGen.TotalPrintTimeStatistics)
+                    {
+                        Console.WriteLine(line);
+                    }
+                    Console.WriteLine("".PadRight(79, '-'));
                 }
             });
             return;
