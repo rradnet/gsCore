@@ -228,16 +228,11 @@ namespace gs
         // start and end layers we will solve for (intersection of layercount and LayerRangeFilter)
         protected int CurStartLayer;
         protected int CurEndLayer;
+        protected PrintLayerData PrevLayerData;
+        protected PrintLayerData CurrLayerData;
+        protected GroupScheduler2d GroupScheduler;
 
-
-
-
-
-
-        /// <summary>
-        /// This is the main driver of the slicing process
-        /// </summary>
-        protected virtual void generate_result()
+        protected void Setup()
         {
             // should be parameterizable? this is 45 degrees...  (is it? 45 if nozzlediam == layerheight...)
             //double fOverhangAllowance = 0.5 * settings.NozzleDiamMM;
@@ -250,18 +245,29 @@ namespace gs
             if (AccumulatePathSet == true)
                 AccumulatedPaths = new ToolpathSet();
 
-			// build spatial caches for slice polygons
-			//bool need_slice_spatial = (Settings.GenerateSupport);
-			bool need_slice_spatial = true;  // need this for bridges...
-			if (need_slice_spatial) {
-				Slices.BuildSliceSpatialCaches(true);
-			}
-
+            // build spatial caches for slice polygons
+            //bool need_slice_spatial = (Settings.GenerateSupport);
+            bool need_slice_spatial = true;  // need this for bridges...
+            if (need_slice_spatial)
+            {
+                Slices.BuildSliceSpatialCaches(true);
+            }
             if (Cancelled()) return;
+
+            PrevLayerData = null;
+
+            // Now generate paths for each layer.
+            // This could be parallelized to some extent, but we have to pass per-layer paths
+            // to Scheduler in layer-order. Probably better to parallelize within-layer computes.
+            CurStartLayer = Math.Max(0, Settings.LayerRangeFilter.a);
+            CurEndLayer = Math.Min(Slices.Count - 1, Settings.LayerRangeFilter.b);
 
             // initialize compiler and get start nozzle position
             Compiler.Begin();
+        }
 
+        protected virtual void PreCompute()
+        {
             // We need N above/below shell paths to do roof/floors, and *all* shells to do support.
             // Also we can compute shells in parallel. So we just precompute them all here.
             precompute_shells();
@@ -276,167 +282,194 @@ namespace gs
 
             precompute_support_areas();
             if (Cancelled()) return;
+        }
 
-			PrintLayerData prevLayerData = null;
+        protected virtual void LayerPreCompute(int layer_i)
+        {
+            // allocate new layer data structure
+            SingleMaterialFFFSettings layerSettings = MakeLayerSettings(layer_i);
+            CurrLayerData = PrintLayerDataFactoryF(layer_i, Slices[layer_i], layerSettings);
+            CurrLayerData.PreviousLayer = PrevLayerData;
 
-            // Now generate paths for each layer.
-            // This could be parallelized to some extent, but we have to pass per-layer paths
-            // to Scheduler in layer-order. Probably better to parallelize within-layer computes.
-            CurStartLayer = Math.Max(0, Settings.LayerRangeFilter.a);
-            CurEndLayer = Math.Min(nLayers-1, Settings.LayerRangeFilter.b);
+            // create path accumulator
+            ToolpathSetBuilder pathAccum = PathBuilderFactoryF(CurrLayerData);
+            CurrLayerData.PathAccum = pathAccum;
+
+            // rest of code does not directly access path builder, instead it
+            // sends paths to scheduler.
+            IFillPathScheduler2d layerScheduler = SchedulerFactoryF(CurrLayerData);
+            GroupScheduler = new GroupScheduler2d(layerScheduler, Compiler.NozzlePosition.xy);
+            //GroupScheduler groupScheduler = new PassThroughGroupScheduler(layerScheduler, Compiler.NozzlePosition.xy);
+            CurrLayerData.Scheduler = GroupScheduler;
+
+            BeginLayerF(CurrLayerData);
+            Compiler.AppendComment(string.Format("layer {0} - {1}mm", layer_i, Compiler.NozzlePosition.z));
+
+            CurrLayerData.ShellFills = get_layer_shells(layer_i);
+
+            // make path-accumulator for this layer
+            pathAccum.Initialize(Compiler.NozzlePosition);
+            // layer-up (ie z-change)
+            pathAccum.AppendZChange(layerSettings.LayerHeightMM, Settings.ZTravelSpeed);
+
+
+            // do support first
+            // this could be done in parallel w/ roof/floor...
+            List<GeneralPolygon2d> support_areas = new List<GeneralPolygon2d>();
+            support_areas = get_layer_support_area(layer_i);
+            if (support_areas != null)
+            {
+                GroupScheduler.BeginGroup();
+                fill_support_regions(support_areas, GroupScheduler, CurrLayerData);
+                GroupScheduler.EndGroup();
+                CurrLayerData.SupportAreas = support_areas;
+            }
+            if (Cancelled()) return;
+            count_progress_step();
+        }
+
+        protected virtual void ShellCompute(IShellsFillPolygon shells_gen)
+        {
+            // schedule shell paths that we pre-computed
+            List<FillCurveSet2d> shells_gen_paths = shells_gen.GetFillCurves();
+            FillCurveSet2d outer_shell = (shells_gen_paths.Count > 0) ? shells_gen_paths[shells_gen_paths.Count - 1] : null;
+            bool do_outer_last = Settings.OuterShellLast && (shells_gen_paths.Count > 1);
+            GroupScheduler.BeginGroup();
+            if (do_outer_last == false)
+            {
+                GroupScheduler.AppendCurveSets(shells_gen_paths);
+            }
+            else
+            {
+                GroupScheduler.AppendCurveSets(shells_gen_paths.GetRange(0, shells_gen_paths.Count - 1));
+            }
+            GroupScheduler.EndGroup();
+            if (Cancelled()) return;
+            count_progress_step();
+
+            // allow client to do configuration (eg change settings for example)
+            BeginShellF(shells_gen, ShellTags.Get(shells_gen));
+
+            // solid fill areas are inner polygons of shell fills
+            List<GeneralPolygon2d> solid_fill_regions = shells_gen.GetInnerPolygons();
+
+            bool is_infill = (CurrLayerData.layer_i >= Settings.FloorLayers && 
+                              CurrLayerData.layer_i < Slices.Count - Settings.RoofLayers - 1);
+
+            // get roof and floor regions.
+            List<GeneralPolygon2d> roof_cover = get_layer_roof_area(CurrLayerData.layer_i);
+            List<GeneralPolygon2d> floor_cover = get_layer_floor_area(CurrLayerData.layer_i);
+
+            // if this is an infill layer, compute infill regions, and remaining solid regions
+            // (ie roof/floor regions, and maybe others)
+            // [TODO] this can be precomputed now...
+            List<GeneralPolygon2d> infill_regions = new List<GeneralPolygon2d>();
+            if (is_infill)
+                infill_regions = make_infill_regions(CurrLayerData.layer_i, solid_fill_regions, roof_cover, floor_cover, out solid_fill_regions);
+            bool has_infill = (infill_regions.Count > 0);
+
+            // fill solid regions
+            GroupScheduler.BeginGroup();
+            // [RMS] always call this for now because we may have bridge regions
+            // [TODO] we can precompute the bridge region calc we are doing here that is quite expensive...
+            fill_solid_regions(solid_fill_regions, GroupScheduler, CurrLayerData, has_infill);
+            GroupScheduler.EndGroup();
+
+            // fill infill regions
+            GroupScheduler.BeginGroup();
+            fill_infill_regions(infill_regions, GroupScheduler, CurrLayerData);
+            GroupScheduler.EndGroup();
+            if (Cancelled()) return;
+            count_progress_step();
+
+            GroupScheduler.BeginGroup();
+            if (do_outer_last && outer_shell != null)
+            {
+                GroupScheduler.AppendCurveSets(new List<FillCurveSet2d>() { outer_shell });
+            }
+            GroupScheduler.EndGroup();
+        }
+
+        protected virtual void LayerPostCompute(int layer_i)
+        {
+            // append open paths
+            GroupScheduler.BeginGroup();
+            add_open_paths(CurrLayerData, GroupScheduler);
+            GroupScheduler.EndGroup();
+
+            // discard the group scheduler
+            CurrLayerData.Scheduler = GroupScheduler.TargetScheduler;
+
+            // last chance to post-process paths for this layer before they are baked in
+            if (Cancelled()) return;
+            if (LayerPostProcessor != null)
+                LayerPostProcessor.Process(CurrLayerData, CurrLayerData.PathAccum.Paths);
+
+            // change speeds if layer is going to finish too quickly
+            if (Settings.MinLayerTime > 0)
+            {
+                CalculatePrintTime layer_time_calc = new CalculatePrintTime(CurrLayerData.PathAccum.Paths, CurrLayerData.Settings);
+                bool layerModified = layer_time_calc.EnforceMinLayerTime();
+                if (layerModified)
+                {
+                    layer_time_calc.Calculate();
+                }
+
+                TotalPrintTimeStatistics.Add(layer_time_calc.TimeStatistics);
+
+            }
+
+            // compile this layer 
+            // [TODO] we could do this in a separate thread, in a queue of jobs?
+            if (Cancelled()) return;
+            Compiler.AppendPaths(CurrLayerData.PathAccum.Paths, CurrLayerData.Settings);
+
+            // add this layer to running pathset
+            if (AccumulatedPaths != null)
+                AccumulatedPaths.Append(CurrLayerData.PathAccum.Paths);
+
+            // we might want to consider this layer while we process next one
+            PrevLayerData = CurrLayerData;
+
+            if (Cancelled()) return;
+            count_progress_step();
+        }
+
+        protected virtual void PostCompute()
+        {
+            Compiler.End();
+            PostProcessCompilerF(Compiler, this);
+            // TODO: May need to force Build.EndLine() somehow if losing the end
+        }
+
+        /// <summary>
+        /// This is the main driver of the slicing process
+        /// </summary>
+        protected virtual void generate_result()
+        {
+            Setup();
+            PreCompute();
+
             for ( int layer_i = CurStartLayer; layer_i <= CurEndLayer; ++layer_i ) {
                 if (Cancelled()) return;
 
-                // allocate new layer data structure
-                SingleMaterialFFFSettings layerSettings = MakeLayerSettings(layer_i);
-                PrintLayerData layerdata = PrintLayerDataFactoryF(layer_i, Slices[layer_i], layerSettings);
-				layerdata.PreviousLayer = prevLayerData;
-
-				// create path accumulator
-				ToolpathSetBuilder pathAccum = PathBuilderFactoryF(layerdata);
-				layerdata.PathAccum = pathAccum;
-
-				// rest of code does not directly access path builder, instead it
-				// sends paths to scheduler.
-				IFillPathScheduler2d layerScheduler = SchedulerFactoryF(layerdata);
-                GroupScheduler2d groupScheduler = new GroupScheduler2d(layerScheduler, Compiler.NozzlePosition.xy);
-                //GroupScheduler groupScheduler = new PassThroughGroupScheduler(layerScheduler, Compiler.NozzlePosition.xy);
-                layerdata.Scheduler = groupScheduler;
-
-                BeginLayerF(layerdata);
-                Compiler.AppendComment(string.Format("layer {0} - {1}mm", layer_i, Compiler.NozzlePosition.z));
-
-				layerdata.ShellFills = get_layer_shells(layer_i);
-
-                bool is_infill = (layer_i >= Settings.FloorLayers && layer_i < nLayers - Settings.RoofLayers - 1);
-
-                // make path-accumulator for this layer
-                pathAccum.Initialize(Compiler.NozzlePosition);
-                // layer-up (ie z-change)
-                pathAccum.AppendZChange(layerSettings.LayerHeightMM, Settings.ZTravelSpeed);
-
-                // get roof and floor regions.
-                List<GeneralPolygon2d> roof_cover = get_layer_roof_area(layer_i);
-                List<GeneralPolygon2d> floor_cover = get_layer_floor_area(layer_i);
-
-                // do support first
-                // this could be done in parallel w/ roof/floor...
-                List<GeneralPolygon2d> support_areas = new List<GeneralPolygon2d>();
-                support_areas = get_layer_support_area(layer_i);
-                if (support_areas != null) {
-                    groupScheduler.BeginGroup();
-                    fill_support_regions(support_areas, groupScheduler, layerdata);
-                    groupScheduler.EndGroup();
-                    layerdata.SupportAreas = support_areas;
-                }
-                if (Cancelled()) return;
-                count_progress_step();
+                LayerPreCompute(layer_i);
 
                 // selector determines what order we process shells in
-                ILayerShellsSelector shellSelector = ShellSelectorFactoryF(layerdata);
+                ILayerShellsSelector shellSelector = ShellSelectorFactoryF(CurrLayerData);
 
                 // a layer can contain multiple disjoint regions. Process each separately.
-                IShellsFillPolygon shells_gen = shellSelector.Next(groupScheduler.CurrentPosition);
-                while ( shells_gen != null ) { 
+                IShellsFillPolygon shells_gen = shellSelector.Next(GroupScheduler.CurrentPosition);
 
-                    // schedule shell paths that we pre-computed
-                    List<FillCurveSet2d> shells_gen_paths = shells_gen.GetFillCurves();
-                    FillCurveSet2d outer_shell = (shells_gen_paths.Count > 0) ? shells_gen_paths[shells_gen_paths.Count - 1] : null;
-					bool do_outer_last = Settings.OuterShellLast && (shells_gen_paths.Count > 1);
-                    groupScheduler.BeginGroup();
-                    if (do_outer_last == false) {
-                        groupScheduler.AppendCurveSets(shells_gen_paths);
-                    } else {
-                        groupScheduler.AppendCurveSets(shells_gen_paths.GetRange(0, shells_gen_paths.Count - 1));
-                    }
-                    groupScheduler.EndGroup();
-                    if (Cancelled()) return;
-                    count_progress_step();
-
-                    // allow client to do configuration (eg change settings for example)
-                    BeginShellF(shells_gen, ShellTags.Get(shells_gen));
-
-                    // solid fill areas are inner polygons of shell fills
-                    List<GeneralPolygon2d> solid_fill_regions = shells_gen.GetInnerPolygons();
-
-                    // if this is an infill layer, compute infill regions, and remaining solid regions
-                    // (ie roof/floor regions, and maybe others)
-                    // [TODO] this can be precomputed now...
-                    List<GeneralPolygon2d> infill_regions = new List<GeneralPolygon2d>();
-                    if (is_infill)
-						infill_regions = make_infill_regions(layer_i, solid_fill_regions, roof_cover, floor_cover, out solid_fill_regions);
-                    bool has_infill = (infill_regions.Count > 0);
-
-                    // fill solid regions
-                    groupScheduler.BeginGroup();
-					// [RMS] always call this for now because we may have bridge regions
-                    // [TODO] we can precompute the bridge region calc we are doing here that is quite expensive...
-                    fill_solid_regions(solid_fill_regions, groupScheduler, layerdata, has_infill);
-                    groupScheduler.EndGroup();
-
-                    // fill infill regions
-                    groupScheduler.BeginGroup();
-                    fill_infill_regions(infill_regions, groupScheduler, layerdata);
-                    groupScheduler.EndGroup();
-                    if (Cancelled()) return;
-                    count_progress_step();
-
-                    groupScheduler.BeginGroup();
-                    if (do_outer_last && outer_shell != null) {
-                        groupScheduler.AppendCurveSets( new List<FillCurveSet2d>() { outer_shell } );
-                    }
-                    groupScheduler.EndGroup();
-
-                    shells_gen = shellSelector.Next(groupScheduler.CurrentPosition);
+                while ( shells_gen != null ) {
+                    ShellCompute(shells_gen);
+                    shells_gen = shellSelector.Next(GroupScheduler.CurrentPosition);
                 }
                 if (Cancelled()) return;
 
-                // append open paths
-                groupScheduler.BeginGroup();
-                add_open_paths(layerdata, groupScheduler);
-                groupScheduler.EndGroup();
-
-                // discard the group scheduler
-                layerdata.Scheduler = groupScheduler.TargetScheduler;
-
-				// last chance to post-process paths for this layer before they are baked in
-                if (Cancelled()) return;
-                if ( LayerPostProcessor != null )
-                    LayerPostProcessor.Process(layerdata, pathAccum.Paths);
-
-                // change speeds if layer is going to finish too quickly
-                if (Settings.MinLayerTime > 0) {
-                    CalculatePrintTime layer_time_calc = new CalculatePrintTime(pathAccum.Paths, layerSettings);
-                    bool layerModified = layer_time_calc.EnforceMinLayerTime();
-                    if (layerModified) {
-                        layer_time_calc.Calculate();
-                    }
-
-                    TotalPrintTimeStatistics.Add(layer_time_calc.TimeStatistics);
-
-                }
-
-                // compile this layer 
-                // [TODO] we could do this in a separate thread, in a queue of jobs?
-                if (Cancelled()) return;
-                Compiler.AppendPaths(pathAccum.Paths, layerSettings);
-
-                // add this layer to running pathset
-                if (AccumulatedPaths != null)
-                    AccumulatedPaths.Append(pathAccum.Paths);
-
-                // we might want to consider this layer while we process next one
-                prevLayerData = layerdata;
-
-                if (Cancelled()) return;
-                count_progress_step();
+                LayerPostCompute(layer_i);
             }
-
-            Compiler.End();
-
-            PostProcessCompilerF(Compiler, this);
-
-            // TODO: May need to force Build.EndLine() somehow if losing the end
+            PostCompute();
         }
 
 
