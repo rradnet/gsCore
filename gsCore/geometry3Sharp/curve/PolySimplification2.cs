@@ -51,32 +51,24 @@ namespace g3
         public List<Vector2d> Result;
 
 
-        public PolySimplification2(Polygon2d polygon)
+        public PolySimplification2(IEnumerable<Vector2d> vertices, bool loop)
         {
-            Vertices = new List<Vector2d>(polygon.Vertices);
-            IsLoop = true;
+            Vertices = new List<Vector2d>(vertices);
+            IsLoop = loop;
         }
-
-        public PolySimplification2(PolyLine2d polycurve)
-        {
-            Vertices = new List<Vector2d>(polycurve.Vertices);
-            IsLoop = false;
-        }
-
-
 
         /// <summary>
         /// simplify outer and holes of a polygon solid with same thresholds
         /// </summary>
         public static void Simplify(GeneralPolygon2d solid, double deviationThresh)
         {
-            PolySimplification2 simp = new PolySimplification2(solid.Outer);
+            PolySimplification2 simp = new PolySimplification2(solid.Outer.Vertices, true);
             simp.SimplifyDeviationThreshold = deviationThresh;
             simp.Simplify();
             solid.Outer.SetVertices(simp.Result, true);
 
             foreach (var hole in solid.Holes) {
-                PolySimplification2 holesimp = new PolySimplification2(hole);
+                PolySimplification2 holesimp = new PolySimplification2(hole.Vertices, true);
                 holesimp.SimplifyDeviationThreshold = deviationThresh;
                 holesimp.Simplify();
                 hole.SetVertices(holesimp.Result, true);

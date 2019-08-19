@@ -170,13 +170,5 @@ namespace gs
 			ExtrusionLength = curA;
 
 		} // Calculate()
-
-
-		bool is_connection(Index3i flags) {
-			return (flags.a & (int)TPVertexFlags.IsConnector) != 0;
-		}
-
-
-
 	}
 }

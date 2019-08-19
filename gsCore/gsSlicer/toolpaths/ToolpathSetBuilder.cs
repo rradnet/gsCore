@@ -147,7 +147,7 @@ namespace gs
             extrusion.TypeModifiers = pathTypeFlags;
 			extrusion.AppendVertex(new PrintVertex(currentPos, NO_RATE, useDims), TPVertexFlags.IsPathStart);
 
-            for (int k = 0; k < toPoints.Count; ++k) {
+            for (int k = 1; k < toPoints.Count; ++k) {
                 Vector3d pos = new Vector3d(toPoints[k].x, toPoints[k].y, currentPos.z);
                 TPVertexFlags flag = (k == toPoints.Count - 1) ? TPVertexFlags.IsPathEnd : TPVertexFlags.None;
 				extrusion.AppendVertex(new PrintVertex(pos, fSpeed, useDims), flag);

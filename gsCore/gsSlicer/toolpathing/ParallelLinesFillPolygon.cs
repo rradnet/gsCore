@@ -145,9 +145,12 @@ namespace gs
                     eid = next.a;
                     vid = next.b;
                     int gid = pathGraph.GetEdgeGroup(eid);
-                    if (gid < 0) {
-                        path.AppendVertex(pathGraph.GetVertex(vid), TPVertexFlags.IsConnector);
-                    } else {
+                    if (gid < 0)
+                    {
+                        path.AppendVertex(pathGraph.GetVertex(vid), new FillSegmentInfo() { IsConnector = true });
+                    }
+                    else
+                    {
                         path.AppendVertex(pathGraph.GetVertex(vid));
                     }
 
@@ -161,13 +164,12 @@ namespace gs
                 if (path.ArcLength < MinPathLengthMM)
                     continue;
 
-
                 // run polyline simplification to get rid of unneccesary detail in connectors
                 // [TODO] we could do this at graph level...)
-                // [TODO] maybe should be checkign for collisions? we could end up creating
+                // [TODO] maybe should be checking for collisions? we could end up creating
                 //  non-trivial overlaps here...
                 if ( SimplifyAmount != SimplificationLevel.None && path.VertexCount > 2 ) {
-                    PolySimplification2 simp = new PolySimplification2(path);
+                    PolySimplification2 simp = new PolySimplification2(path.Vertices, false);
                     switch (SimplifyAmount) {
                         default:
                         case SimplificationLevel.Minor:

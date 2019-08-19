@@ -24,193 +24,234 @@ namespace gs
 		BridgeSupport = 1<<11
 	}
 
+    public class FillVertexInfo
+    {
+    }
 
+    public class FillSegmentInfo : ICloneable
+    {
+        public bool IsConnector;
+        public bool IsSupport;
+
+        public object Clone()
+        {
+            return (FillSegmentInfo)this.MemberwiseClone();
+        }
+
+        public void Reverse()
+        {
+        }
+    }
+
+    public interface IFillElementPolygon
+    {
+        FillTypeFlags TypeFlags { get; set; }
+        double Perimeter { get; }
+    }
+
+    public interface IFillElementPolyline
+    {
+        FillTypeFlags TypeFlags { get; set; }
+        double ArcLength { get; }
+    }
 
     /// <summary>
-    /// things that are common to FillPolyline2d and FillPolygon2d
+    /// Things that are common to FillPolylineGeneric and FillPolylineGeneric
     /// </summary>
-    public interface FillCurve2d
+    public abstract class FillElement<TVertexInfo, TSegmentInfo>
+        where TVertexInfo : FillVertexInfo, new()
+        where TSegmentInfo : FillSegmentInfo, new()
     {
-        bool HasTypeFlag(FillTypeFlags f);
+        public class PointData
+        {
+            public Vector2d Vertex;
+            public TVertexInfo VertexInfo;
+            public TSegmentInfo SegmentInfo;
+        }
+    }
 
-		double CustomThickness { get; }
+    /// <summary>
+    /// Additive polygon fill curve
+    /// </summary>
+    public abstract class FillPolygonGeneric<TVertexInfo, TSegmentInfo> : 
+        FillElement<TVertexInfo, TSegmentInfo>, IFillElementPolygon
+        where TVertexInfo : FillVertexInfo, new()
+        where TSegmentInfo : FillSegmentInfo, new()
+    {
+        protected Polygon2d Polygon = new Polygon2d();
+        protected List<TVertexInfo> VertexInfo = new List<TVertexInfo>();
+        protected List<TSegmentInfo> SegmentInfo = new List<TSegmentInfo>();
+
+        public bool HasTypeFlag(FillTypeFlags f) { return (TypeFlags & f) == f; }
+        public double CustomThickness { get; set; }
+
+        // Expose some properties & methods from underlying Polygon
+        public int VertexCount { get => Polygon.VertexCount; }
+        public double Perimeter { get => Polygon.Perimeter; }
+        public Vector2d this[int i] { get => Polygon[i]; }
+        public IEnumerable<Vector2d> Vertices { get => Polygon.VerticesItr(false); }
+        public FillTypeFlags TypeFlags { get; set; } = FillTypeFlags.Unknown;
+
+        public Segment2d Segment(int i) { return Polygon.Segment(i); }
+        public double DistanceSquared(Vector2d pt, out int iNearSeg, out double fNearSegT)
+        {
+            return Polygon.DistanceSquared(pt, out iNearSeg, out fNearSegT);
+        }
+
+        public void AppendVertex(Vector2d pt, TVertexInfo vInfo = null, TSegmentInfo sInfo = null)
+        {
+            Polygon.AppendVertex(pt);
+            VertexInfo.Add(vInfo);
+
+            if (Polygon.VertexCount > 0)
+                SegmentInfo.Add(sInfo);
+            else if (sInfo != null)
+                throw new Exception("Cannot add SegmentInfo to the first vertex.");
+        }
+
+        public void AppendVertex(Vector2d pt, TSegmentInfo sInfo)
+        {
+            AppendVertex(pt, null, sInfo);
+        }
+
+        public PointData GetPoint(int i, bool reverse)
+        {
+            if (reverse)
+            {
+                var segReversed = (TSegmentInfo)SegmentInfo[i].Clone();
+                segReversed?.Reverse();
+                return new PointData()
+                {
+                    Vertex = Polygon[i],
+                    VertexInfo = VertexInfo[i],
+                    SegmentInfo = segReversed,
+                };
+            }
+            else
+            {
+                return new PointData()
+                {
+                    Vertex = Polygon[i],
+                    VertexInfo = VertexInfo[i],
+                    SegmentInfo = SegmentInfo[(i + Polygon.VertexCount - 1) % Polygon.VertexCount]
+                };
+            }
+        }
+    }
+
+    /// <summary>
+    /// Additive polyline fill curve
+    /// </summary>
+    public abstract class FillPolylineGeneric<TVertexInfo, TSegmentInfo> :
+        FillElement<TVertexInfo, TSegmentInfo>, IFillElementPolyline
+        where TVertexInfo : FillVertexInfo, new()
+        where TSegmentInfo : FillSegmentInfo, new()
+    {
+        public FillTypeFlags TypeFlags { get; set; } = FillTypeFlags.Unknown;
+        public bool HasTypeFlag(FillTypeFlags f) { return (TypeFlags & f) == f; }
+        public double CustomThickness { get; set; }
+
+        // Expose some properties & methods from underlying Polyline
+        public int VertexCount { get => Polyline.VertexCount; }
+        public double ArcLength { get => Polyline.ArcLength; }
+        public Vector2d Start { get => Polyline.Vertices[0]; }
+        public Vector2d End { get => Polyline.Vertices[Polyline.VertexCount - 1]; }
+        public IEnumerable<Vector2d> Vertices { get => Polyline.Vertices; }
+        public Segment2d Segment(int i) { return Polyline.Segment(i); }
+        public Vector2d this[int i] { get => Polyline[i]; }
+
+        protected PolyLine2d Polyline = new PolyLine2d();
+        protected List<TVertexInfo> VertexInfo = new List<TVertexInfo>();
+        protected List<TSegmentInfo> SegmentInfo = new List<TSegmentInfo>();
+
+        public void AppendVertex(Vector2d pt, TVertexInfo vInfo = null, TSegmentInfo sInfo = null)
+        {
+            Polyline.AppendVertex(pt);
+            VertexInfo.Add(vInfo);
+
+            if (Polyline.VertexCount > 0)
+                SegmentInfo.Add(sInfo);
+            else if (sInfo != null)
+                throw new Exception("Cannot add SegmentInfo to the first vertex.");
+        }
+
+        public void AppendVertex(Vector2d pt, TSegmentInfo sInfo)
+        {
+            AppendVertex(pt, null, sInfo);
+        }
+
+        public PointData GetPoint(int i, bool reverse)
+        {
+            if (reverse)
+            {
+
+                var segReversed = i >= SegmentInfo.Count - 1 ? null : (TSegmentInfo)SegmentInfo[i]?.Clone();
+                segReversed?.Reverse();
+                return new PointData()
+                {
+                    Vertex = Polyline[i],
+                    VertexInfo = VertexInfo[i],
+                    SegmentInfo = segReversed,
+                };
+            }
+            else
+            {
+                return new PointData()
+                {
+                    Vertex = Polyline[i],
+                    VertexInfo = VertexInfo[i],
+                    SegmentInfo = i == 0 ? null : SegmentInfo[i - 1]
+                };
+            }
+        }
+
+        public void Reverse()
+        {
+            // Reverse Lists
+            Polyline.Reverse();
+            VertexInfo.Reverse();
+            SegmentInfo.Reverse();
+
+            // Reverse each segment in case segment data is directional
+            foreach (var seg in SegmentInfo)
+                seg?.Reverse();
+        }
     }
 
 
-
-	/// <summary>
-	/// Additive polygon fill curve
-	/// </summary>
-	public class FillPolygon2d : Polygon2d, FillCurve2d
+    public class FillPolygon2d : FillPolygonGeneric<FillVertexInfo, FillSegmentInfo>
     {
-		public FillTypeFlags TypeFlags = FillTypeFlags.Unknown;
+        public FillPolygon2d()
+        { }
 
-		public bool HasTypeFlag(FillTypeFlags f) {
-			return (TypeFlags & f) != 0;
-		}
+        public FillPolygon2d(IEnumerable<Vector2d> vertices)
+        {
+            foreach (var v in vertices)
+                AppendVertex(v);
+        }
+        
+    }
 
-		public double CustomThickness { get; set; }
-
-		public FillPolygon2d() : base()
-		{
-			CustomThickness = 0;
-		}
-
-		public FillPolygon2d(Vector2d[] v) : base(v)
-		{
-			CustomThickness = 0;
-		}
-
-		public FillPolygon2d(Polygon2d p) : base(p)
-		{
-			CustomThickness = 0;
-		}	
-	}
-
-
-
-
-
-	/// <summary>
-	/// Additive polyline fill curve
-	/// </summary>
-	public class FillPolyline2d : PolyLine2d, FillCurve2d
+    public class FillPolyline2d : FillPolylineGeneric<FillVertexInfo, FillSegmentInfo>
     {
-		public FillTypeFlags TypeFlags = FillTypeFlags.Unknown;
-
-		public bool HasTypeFlag(FillTypeFlags f) {
-			return (TypeFlags & f) == f;
-		}
-
-		// [TODO] maybe remove? see below.
-		List<TPVertexFlags> flags;
-		bool has_flags = false;
-
-
-		public double CustomThickness { get; set; }
-
-
-		public FillPolyline2d() : base()
-		{
-			CustomThickness = 0;
-		}
-
-		public FillPolyline2d(Vector2d[] v) : base(v)
-		{
-			CustomThickness = 0;
-		}
-
-		public FillPolyline2d(PolyLine2d p) : base(p)
-		{
-			CustomThickness = 0;
-		}
-
-		void alloc_flags()
-		{
-			if (flags == null) {
-				flags = new List<TPVertexFlags>();
-				for (int i = 0; i < vertices.Count; ++i)
-					flags.Add(TPVertexFlags.None);
-			}
-		}
-
-		public override void AppendVertex(Vector2d v)
-		{
-			base.AppendVertex(v);
-			if (flags != null)
-				flags.Add(TPVertexFlags.None);
-		}
-		public override void AppendVertices(IEnumerable<Vector2d> v)
-		{
-			base.AppendVertices(v);
-			if (flags != null) {
-				foreach (var x in v)
-					flags.Add(TPVertexFlags.None);
-			}
-		}
-
-		public override void Reverse()
-		{
-			base.Reverse();
-			if (flags != null)
-				flags.Reverse();
-		}
-		public override void Simplify(double clusterTol = 0.0001,
-										double lineDeviationTol = 0.01,
-									  bool bSimplifyStraightLines = true)
-		{
-            int n = vertices.Count;
-
-            int i, k, pv;            // misc counters
-            Vector2d[] vt = new Vector2d[n];  // vertex buffer
-            bool has_flags = HasFlags;
-            TPVertexFlags[] vf = (has_flags) ? new TPVertexFlags[n] : null;
-            bool[] mk = new bool[n];
-            for (i = 0; i < n; ++i)     // marker buffer
-                mk[i] = false;
-
-            // STAGE 1.  Vertex Reduction within tolerance of prior vertex cluster
-            double clusterTol2 = clusterTol * clusterTol;
-            vt[0] = vertices[0];              // start at the beginning
-            for (i = k = 1, pv = 0; i < n; i++) {
-                if ((vertices[i] - vertices[pv]).LengthSquared < clusterTol2)
-                    continue;
-                if (has_flags)
-                    vf[k] = flags[i];
-                vt[k++] = vertices[i];
-                pv = i;
-            }
-            if (pv < n - 1)
-                vt[k++] = vertices[n - 1];      // finish at the end
-
-            // STAGE 2.  Douglas-Peucker polyline simplification
-            if (lineDeviationTol > 0) {
-                mk[0] = mk[k - 1] = true;       // mark the first and last vertices
-                simplifyDP(lineDeviationTol, vt, 0, k - 1, mk);
-            } else {
-                for (i = 0; i < k; ++i)
-                    mk[i] = true;
-            }
-
-            // copy marked vertices back to this polygon
-            vertices = new List<Vector2d>();
-            flags = (has_flags) ? new List<TPVertexFlags>() : null;
-            for (i = 0; i < k; ++i) {
-                if (mk[i]) {
-                    vertices.Add(vt[i]);
-                    if (has_flags)
-                        flags.Add(vf[i]);
-                }
-            }
-            Timestamp++;
-
-            return;
+        public FillPolyline2d()
+        { }
+           
+        public FillPolyline2d(IEnumerable<Vector2d> vertices)
+        {
+            foreach (var v in vertices)
+                AppendVertex(v);
         }
 
+        public void Trim(double v)
+        {
+            Polyline.Trim(v);
 
-		public void AppendVertex(Vector2d v, TPVertexFlags flag)
-		{
-			alloc_flags();
-			base.AppendVertex(v);
-			flags.Add(flag);
-			has_flags = true;
-		}
-		public void AppendVertices(IEnumerable<Vector2d> v, IEnumerable<TPVertexFlags> f)
-		{
-			alloc_flags();
-			base.AppendVertices(v);
-			flags.AddRange(f);
-			has_flags = true;
-		}
+            // Remove any vertex info that was trimmed away.
+            VertexInfo.RemoveRange(Polyline.VertexCount, VertexInfo.Count - Polyline.VertexCount);
 
-
-		// [RMS] this is *only* used for PathUtil.ConnectorVFlags. Maybe remove this capability?
-		public TPVertexFlags GetFlag(int i) { return (flags == null) ? TPVertexFlags.None : flags[i]; }
-		public void SetFlag(int i, TPVertexFlags flag) { alloc_flags(); flags[i] = flag; }
-
-		public bool HasFlags {
-			get { return flags != null && has_flags; }
-		}
-		public IReadOnlyList<TPVertexFlags> Flags() { return flags.AsReadOnly(); }
-	}
+            // Remove any segment info that was trimmed away.
+            VertexInfo.RemoveRange(Polyline.VertexCount - 1, SegmentInfo.Count - 1 - Polyline.VertexCount);
+        }
+    }
 }
