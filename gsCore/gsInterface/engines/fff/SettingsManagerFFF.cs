@@ -20,6 +20,6 @@ namespace gs.interfaces
             } }
 
         public override IUserSettingCollection<SingleMaterialFFFSettings> UserSettings =>
-            new UserSettingsFFF();
+            new UserSettingsFFF<SingleMaterialFFFSettings>();
     }
 }

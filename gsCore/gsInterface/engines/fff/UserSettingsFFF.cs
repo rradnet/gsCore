@@ -2,12 +2,12 @@
 
 namespace gs.interfaces
 {
-    public class UserSettingsFFF : UserSettingCollection<SingleMaterialFFFSettings>
+    public class UserSettingsFFF<TSettings> : UserSettingCollection<TSettings> where TSettings : SingleMaterialFFFSettings
     {
         public static readonly UserSettingGroup GroupBasic = 
             new UserSettingGroup(() => UserSettingTranslations.GroupBasic);
 
-        public UserSettingInt<SingleMaterialFFFSettings> Shells = new UserSettingInt<SingleMaterialFFFSettings>(
+        public UserSettingInt<TSettings> Shells = new UserSettingInt<TSettings>(
             () => UserSettingTranslations.Shells_Name,
             () => UserSettingTranslations.Shells_Description,
             GroupBasic,
@@ -15,7 +15,7 @@ namespace gs.interfaces
             (settings, val) => settings.Shells = val,
             UserSettingNumericValidations<int>.ValidateMin(0, ValidationResult.Level.Error));
 
-        public UserSettingInt<SingleMaterialFFFSettings> RoofLayers = new UserSettingInt<SingleMaterialFFFSettings>(
+        public UserSettingInt<TSettings> RoofLayers = new UserSettingInt<TSettings>(
             () => UserSettingTranslations.RoofLayers_Name,
             () => UserSettingTranslations.RoofLayers_Description,
             GroupBasic,
@@ -23,7 +23,7 @@ namespace gs.interfaces
             (settings, val) => settings.RoofLayers = val,
             UserSettingNumericValidations<int>.ValidateMin(0, ValidationResult.Level.Error));
 
-        public UserSettingInt<SingleMaterialFFFSettings> FloorLayers = new UserSettingInt<SingleMaterialFFFSettings>(
+        public UserSettingInt<TSettings> FloorLayers = new UserSettingInt<TSettings>(
             () => UserSettingTranslations.FloorLayers_Name,
             () => UserSettingTranslations.FloorLayers_Description,
             GroupBasic,
