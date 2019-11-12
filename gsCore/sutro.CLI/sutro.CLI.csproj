@@ -62,6 +62,10 @@
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\..\clientTest\clientTest.csproj">
+      <Project>{3f444dce-c51a-4e86-9cd8-7e3f4643e774}</Project>
+      <Name>clientTest</Name>
+    </ProjectReference>
     <ProjectReference Include="..\geometry3Sharp\geometry3Sharp.csproj">
       <Project>{7046cf61-d5d8-4c11-9e4b-959102ae131c}</Project>
       <Name>geometry3Sharp</Name>

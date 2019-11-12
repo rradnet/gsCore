@@ -17,6 +17,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "gsInterface", "gsCore\gsInt
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "sutro.CLI", "gsCore\sutro.CLI\sutro.CLI.csproj", "{F1F3F3C9-4BD6-48F4-A60B-19524C05B1ED}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "clientTest", "clientTest\clientTest.csproj", "{3F444DCE-C51A-4E86-9CD8-7E3F4643E774}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -73,6 +75,14 @@ Global
 		{F1F3F3C9-4BD6-48F4-A60B-19524C05B1ED}.Release|Any CPU.Build.0 = Release|Any CPU
 		{F1F3F3C9-4BD6-48F4-A60B-19524C05B1ED}.Release|x64.ActiveCfg = Release|Any CPU
 		{F1F3F3C9-4BD6-48F4-A60B-19524C05B1ED}.Release|x64.Build.0 = Release|Any CPU
+		{3F444DCE-C51A-4E86-9CD8-7E3F4643E774}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{3F444DCE-C51A-4E86-9CD8-7E3F4643E774}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{3F444DCE-C51A-4E86-9CD8-7E3F4643E774}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{3F444DCE-C51A-4E86-9CD8-7E3F4643E774}.Debug|x64.Build.0 = Debug|Any CPU
+		{3F444DCE-C51A-4E86-9CD8-7E3F4643E774}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{3F444DCE-C51A-4E86-9CD8-7E3F4643E774}.Release|Any CPU.Build.0 = Release|Any CPU
+		{3F444DCE-C51A-4E86-9CD8-7E3F4643E774}.Release|x64.ActiveCfg = Release|Any CPU
+		{3F444DCE-C51A-4E86-9CD8-7E3F4643E774}.Release|x64.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
