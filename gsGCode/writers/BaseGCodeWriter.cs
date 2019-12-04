@@ -16,7 +16,7 @@ namespace gs
         public bool WriteInvariantCulture = true;
 
 
-        public virtual IOWriteResult WriteFile(GCodeFile file, StreamWriter outStream) 
+        public virtual IOWriteResult WriteFile(GCodeFile file, TextWriter outStream) 
 		{
             // save current culture
             var current_culture = Thread.CurrentThread.CurrentCulture;
@@ -43,7 +43,7 @@ namespace gs
         }
 
 
-		public abstract void WriteLine(GCodeLine line, StreamWriter outStream);
+		public abstract void WriteLine(GCodeLine line, TextWriter outStream);
 
 	}
 }

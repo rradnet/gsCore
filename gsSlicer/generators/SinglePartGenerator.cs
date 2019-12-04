@@ -24,13 +24,10 @@ namespace gs
                 return assembly.GetName().Version;
             } }
 
-        public void SaveGCode(string path, GCodeFile file)
+        public void SaveGCode(TextWriter output, GCodeFile file)
         {
-            using (StreamWriter w = new StreamWriter(path))
-            {
-                StandardGCodeWriter writer = new StandardGCodeWriter();
-                writer.WriteFile(file, w);
-            }
+            StandardGCodeWriter writer = new StandardGCodeWriter();
+            writer.WriteFile(file, output);
         }
 
         public GCodeFile LoadGCode(string path)

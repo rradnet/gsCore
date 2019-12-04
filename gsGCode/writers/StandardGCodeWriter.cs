@@ -27,7 +27,7 @@ namespace gs
 
 
 
-		public override void WriteLine(GCodeLine line, StreamWriter outStream) 
+		public override void WriteLine(GCodeLine line, TextWriter outStream) 
 		{
 			if ( line.type == GCodeLine.LType.Comment ) {
                 if (CommentStyle == CommentStyles.Semicolon) {

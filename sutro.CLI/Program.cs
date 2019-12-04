@@ -310,7 +310,10 @@ namespace sutro.CLI
                 null, (s) => Console.WriteLine(s));
 
             Console.WriteLine($"Writing gcode to {fGCodeFilePath}");
-            engine.Generator.SaveGCode(fGCodeFilePath, gcode);
+            using (StreamWriter w = new StreamWriter(fGCodeFilePath))
+            {
+                engine.Generator.SaveGCode(w, gcode);
+            }
 
             ConsoleWriteSeparator();
             foreach (var s in generationReport)

@@ -1,6 +1,7 @@
 ﻿using g3;
 using System;
 using System.Collections.Generic;
+using System.IO;
 
 namespace gs
 {
@@ -20,7 +21,7 @@ namespace gs
                                 Action<GCodeLine> gcodeLineReadyF = null,
                                 Action<string> progressMessageF = null);
 
-        void SaveGCode(string path, GCodeFile file);
+        void SaveGCode(TextWriter path, GCodeFile file);
 
         GCodeFile LoadGCode(string path);
 
