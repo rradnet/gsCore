@@ -56,10 +56,6 @@
       <Project>{0c518dda-28fe-44ca-9ab0-f9773974f13a}</Project>
       <Name>geometry3Sharp</Name>
     </ProjectReference>
-    <ProjectReference Include="..\gsEngines\gsEngines.csproj">
-      <Project>{289EC3B7-6A37-4C6A-BBF8-DC080C377C1F}</Project>
-      <Name>gsEngines</Name>
-    </ProjectReference>
     <ProjectReference Include="..\gsInterface\gsInterface.csproj">
       <Project>{5ac09bd3-0ec4-47be-9342-4dd471031229}</Project>
       <Name>gsInterface</Name>

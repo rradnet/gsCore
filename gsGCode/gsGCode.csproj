@@ -36,4 +36,10 @@
     </EmbeddedResource>
   </ItemGroup>
 
+  <PropertyGroup>
+    <PostBuildEvent>
+      $(ILMergeConsolePath) /log /ndebug /internalize /out:gsCore_engines.dll clipper_library.dll gsEngines.dll gsGCode.dll gsSlicer.dll
+    </PostBuildEvent>
+  </PropertyGroup>
+
 </Project>
