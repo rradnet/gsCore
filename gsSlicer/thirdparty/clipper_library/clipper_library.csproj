@@ -5,7 +5,7 @@
     <Authors>Angus Johnson</Authors>
     <Company>Angus Johnson</Company>
     <Copyright>Copyright © Angus Johnson 2010-14</Copyright>
-    <SignAssembly>true</SignAssembly>
+    <SignAssembly>false</SignAssembly>
     <DelaySign>false</DelaySign>
     <AssemblyOriginatorKeyFile>clipper_library.Key.snk</AssemblyOriginatorKeyFile>
   </PropertyGroup>

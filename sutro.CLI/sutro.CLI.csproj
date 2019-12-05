@@ -37,7 +37,7 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <PropertyGroup>
-    <SignAssembly>true</SignAssembly>
+    <SignAssembly>false</SignAssembly>
   </PropertyGroup>
   <PropertyGroup>
     <AssemblyOriginatorKeyFile>sutro.gsCore.Key.snk</AssemblyOriginatorKeyFile>
@@ -57,7 +57,7 @@
       <Name>geometry3Sharp</Name>
     </ProjectReference>
     <ProjectReference Include="..\gsEngines\gsEngines.csproj">
-      <Project>{289ec3b7-6a37-4c6a-bbf8-dc080c377c1f}</Project>
+      <Project>{289EC3B7-6A37-4C6A-BBF8-DC080C377C1F}</Project>
       <Name>gsEngines</Name>
     </ProjectReference>
     <ProjectReference Include="..\gsInterface\gsInterface.csproj">

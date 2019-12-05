@@ -2,7 +2,7 @@
 
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
-    <SignAssembly>true</SignAssembly>
+    <SignAssembly>false</SignAssembly>
     <AssemblyOriginatorKeyFile>gsEngines.gsCore.Key.snk</AssemblyOriginatorKeyFile>
   </PropertyGroup>
 
@@ -11,23 +11,6 @@
     <ProjectReference Include="..\gsGCode\gsGCode.csproj" />
     <ProjectReference Include="..\gsInterface\gsInterface.csproj" />
     <ProjectReference Include="..\gsSlicer\gsSlicer.csproj" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Compile Update="engines\translations\UserSettingTranslations.Designer.cs">
-      <CustomToolNamespace>gs.interfaces</CustomToolNamespace>
-      <DependentUpon>UserSettingTranslations.resx</DependentUpon>
-      <DesignTime>True</DesignTime>
-      <AutoGen>True</AutoGen>
-    </Compile>
-  </ItemGroup>
-
-  <ItemGroup>
-    <EmbeddedResource Update="engines\translations\UserSettingTranslations.resx">
-      <CustomToolNamespace>gs.engines</CustomToolNamespace>
-      <LastGenOutput>UserSettingTranslations.Designer.cs</LastGenOutput>
-      <Generator>ResXFileCodeGenerator</Generator>
-    </EmbeddedResource>
   </ItemGroup>
 
 </Project>
