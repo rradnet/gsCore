@@ -8,7 +8,7 @@
 
         double MachineBedSizeXMM { get; }
         double MachineBedSizeYMM { get; }
-        double MachineBedSizeZM01M { get; }
+        double MachineBedSizeZMM { get; }
 
         IProfile Clone();
     }
