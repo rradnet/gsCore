@@ -191,7 +191,7 @@ namespace gs
         public string ProfileName => Identifier;
         public double MachineBedSizeXMM => Machine.BedSizeXMM;
         public double MachineBedSizeYMM => Machine.BedSizeYMM;
-        public double MachineBedSizeZM01M => Machine.MaxHeightMM;
+        public double MachineBedSizeZMM => Machine.MaxHeightMM;
         public IProfile Clone()
         {
             return CloneAs<SingleMaterialFFFSettings>();
