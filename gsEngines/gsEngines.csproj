@@ -7,10 +7,22 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="ilmerge" Version="3.0.29" />
+    <PackageReference Include="ILMerge.MSBuild.Tasks" Version="1.0.0.3" />
+    <PackageReference Include="Newtonsoft.Json" Version="12.0.3" />
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="..\geometry3Sharp\geometry3Sharp.csproj" />
     <ProjectReference Include="..\gsGCode\gsGCode.csproj" />
     <ProjectReference Include="..\gsInterface\gsInterface.csproj" />
     <ProjectReference Include="..\gsSlicer\gsSlicer.csproj" />
   </ItemGroup>
+
+  <PropertyGroup>
+    <PostBuildEvent>
+      $(ILMergeConsolePath) /log /ndebug /internalize /out:gsCore.Engines.dll clipper_library.dll gsEngines.dll gsGCode.dll gsSlicer.dll
+    </PostBuildEvent>
+  </PropertyGroup>
 
 </Project>
