@@ -10,6 +10,9 @@
         double MachineBedSizeYMM { get; }
         double MachineBedSizeZMM { get; }
 
+        double MachineBedOffsetX { get; }
+        double MachineBedOffsetY { get; }
+
         IProfile Clone();
     }
 }
