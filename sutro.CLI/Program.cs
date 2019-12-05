@@ -15,45 +15,6 @@ namespace sutro.CLI
 {
     class Program
     {
-        #pragma warning disable CS0649
-        [ImportMany(typeof(IEngine))]
-        protected IEnumerable<Lazy<IEngine, IEngineData>> Engines;
-        #pragma warning restore CS0649
-
-        protected static Dictionary<string, Lazy<IEngine, IEngineData>> EngineDictionary;
-
-        private CompositionContainer _container;
-
-        public Program()
-        {
-            // An aggregate catalog that combines multiple catalogs
-            var catalog = new AggregateCatalog();
-
-            // Add catalogs in overrideable method
-            AddCatalogs(catalog);
-
-            // Create the CompositionContainer with the parts in the catalog
-            _container = new CompositionContainer(catalog);
-
-            // Fill the imports of this object
-            try
-            {
-                _container.ComposeParts(this);
-            }
-            catch (ReflectionTypeLoadException e)
-            {
-                Console.WriteLine("Composition loader exceptions:");
-                foreach (var a in e.LoaderExceptions)
-                {
-                    Console.WriteLine(a.ToString());
-                }
-            }
-            catch (CompositionException e)
-            {
-                Console.WriteLine(e.ToString());
-            }
-        }
-
         /// <remarks>
         /// Need to explicitly reference any class from each assembly with engines in it;
         /// this is due to the fact that Fody.Costura will discard unreferenced assemblies
@@ -63,20 +24,6 @@ namespace sutro.CLI
         protected virtual void ReferenceEngines()
         {
             _ = new EngineFFF();
-        }
-
-        protected virtual void AddCatalogs(AggregateCatalog catalog)
-        {
-            ReferenceEngines();
-
-            // This iteration is required because of the bundling done by Fody.Costura
-            foreach (var asm in AppDomain.CurrentDomain.GetAssemblies())
-            {
-                catalog.Catalogs.Add(new AssemblyCatalog(asm));
-            }
-            var pluginDirectory = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "plugins");
-            if (Directory.Exists(pluginDirectory))
-                catalog.Catalogs.Add(new DirectoryCatalog(pluginDirectory));
         }
 
         public class Options
@@ -112,23 +59,17 @@ namespace sutro.CLI
                 HelpText = "Unless true, settings will be validated against UserSettings for the settings type; the generator will not run with invalid settings. If true, invalid settings will still be used.")]
             public bool ForceInvalidSettings { get; set; }
         }
-        
+
+
+        private static Dictionary<string, Lazy<IEngine, IEngineData>> EngineDictionary;
+
         [STAThread]
         static void Main(string[] args)
         {
             // Construct a dictionary of all the engines that were imported via MEF
-            var p = new Program();
-
-            EngineDictionary = new Dictionary<string, Lazy<IEngine, IEngineData>>();
-
-            if (p.Engines == null)
-                return;
-
-            foreach (var e in p.Engines)
-            {
-                if (!EngineDictionary.ContainsKey(e.Metadata.Name))
-                    EngineDictionary.Add(e.Metadata.Name.ToLower(), e);
-            }
+            var pluginDirectory = Path.Combine(AppDomain.CurrentDomain.BaseDirectory);
+            var a = new EngineFinder(pluginDirectory, (s) => Console.WriteLine(s));
+            EngineDictionary = a.EngineDictionary;
 
             // Parse the input arguments
             var parser = new Parser(with => with.HelpWriter = null);
