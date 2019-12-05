@@ -186,12 +186,14 @@ namespace gs
         public double TravelLiftDistanceThreshold { get; set; } = 5d;
 
         // Wrap some properties to satisfy the IProfile interface 
-        public string ManufacturerName => BaseMachine.ManufacturerName;
-        public string ModelIdentifier => BaseMachine.ModelIdentifier;
-        public string ProfileName => Identifier;
+        public string ManufacturerName { get => Machine.ManufacturerName; set => Machine.ManufacturerName = value; }
+        public string ModelIdentifier { get => Machine.ModelIdentifier; set => Machine.ModelIdentifier = value; }
+        public string ProfileName { get => Identifier; set => Identifier = value; }
         public double MachineBedSizeXMM => Machine.BedSizeXMM;
         public double MachineBedSizeYMM => Machine.BedSizeYMM;
         public double MachineBedSizeZMM => Machine.MaxHeightMM;
+        public double MachineBedOriginFactorX => Machine.BedOriginFactorX;
+        public double MachineBedOriginFactorY => Machine.BedOriginFactorY;
         public IProfile Clone()
         {
             return CloneAs<SingleMaterialFFFSettings>();
