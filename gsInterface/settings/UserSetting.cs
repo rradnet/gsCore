@@ -14,8 +14,8 @@ namespace gs.interfaces
 
         public abstract void LoadFromRaw(object settings);
         public abstract void ApplyToRaw(object settings);
-
-        public abstract void ApplyToRaw(object settings, object value);
+        public abstract object GetFromRaw(object settings);
+        public abstract void SetToRaw(object settings, object value);
 
         public abstract ValidationResult Validation { get; }
         public UserSetting(Func<string> nameF, Func<string> descriptionF = null, UserSettingGroup group = null)
@@ -42,14 +42,18 @@ namespace gs.interfaces
         {
             ApplyToRaw((TSettings)settings);
         }
-        public override void ApplyToRaw(object settings, object value)
+        public override object GetFromRaw(object settings) {
+            return GetFromRaw((TSettings)settings);
+        }
+        public override void SetToRaw(object settings, object value)
         {
-            ApplyToRaw((TSettings) settings, value);
+            SetToRaw((TSettings) settings, value);
         }
 
         public abstract void LoadFromRaw(TSettings settings);
         public abstract void ApplyToRaw(TSettings settings);
-        public abstract void ApplyToRaw(TSettings settings, object value);
+        public abstract object GetFromRaw(TSettings settings);
+        public abstract void SetToRaw(TSettings settings, object value);
     }
 
     public class UserSetting<TSettings, TValue> : UserSetting<TSettings>
@@ -75,7 +79,8 @@ namespace gs.interfaces
 
         public override void LoadFromRaw(TSettings settings) { Value = loadF(settings); }
         public override void ApplyToRaw(TSettings settings) { applyF(settings, Value); }
-        public override void ApplyToRaw(TSettings settings, object value) { applyF(settings, (TValue)value); }
+        public override object GetFromRaw(TSettings settings) { return loadF(settings); }
+        public override void SetToRaw(TSettings settings, object value) { applyF(settings, (TValue)value); }
 
         public override ValidationResult Validation
         {

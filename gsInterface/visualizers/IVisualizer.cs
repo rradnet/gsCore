@@ -25,8 +25,9 @@ namespace gs.interfaces
         public int layerIndex;
         public int pointCount;
         public Vector3f color;
+        public float brightness;
 
-        public ToolpathPreviewVertex(Vector3d point, int fillType, Vector2d dimensions, double feedrate, int layerIndex, int pointCount, Vector3f color)
+        public ToolpathPreviewVertex(Vector3d point, int fillType, Vector2d dimensions, double feedrate, int layerIndex, int pointCount, Vector3f color, float brightness)
         {
             this.point = point;
             this.fillType = fillType;
@@ -35,6 +36,7 @@ namespace gs.interfaces
             this.layerIndex = layerIndex;
             this.pointCount = pointCount;
             this.color = color;
+            this.brightness = brightness;
         }
     }
 }

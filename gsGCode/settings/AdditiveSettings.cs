@@ -1,6 +1,7 @@
 ﻿﻿using System;
 using g3;
 using gs.interfaces;
+using Newtonsoft.Json;
 
 namespace gs
 {
@@ -191,7 +192,9 @@ namespace gs
         public string ProfileName => Identifier;
         public double MachineBedSizeXMM => Machine.BedSizeXMM;
         public double MachineBedSizeYMM => Machine.BedSizeYMM;
-        public double MachineBedSizeZM01M => Machine.MaxHeightMM;
+        public double MachineBedSizeZMM => Machine.MaxHeightMM;
+        public double MachineBedOriginFactorX => Machine.BedOriginFactorX;
+        public double MachineBedOriginFactorY => Machine.BedOriginFactorY;
         public IProfile Clone()
         {
             return CloneAs<SingleMaterialFFFSettings>();
@@ -275,10 +278,12 @@ namespace gs
          * Debug/Utility options
          */
 
+        [JsonIgnore]
         public Interval1i LayerRangeFilter = new Interval1i(0, 999999999);   // only compute slices in this range
 
-
-
+        [JsonProperty]
+        private int LayerRangeFilterMin { get { return LayerRangeFilter.a; } set { LayerRangeFilter.a = value; } }
+        private int LayerRangeFilterMax { get { return LayerRangeFilter.b; } set { LayerRangeFilter.b = value; } }
 
         /*
          * functions that calculate derived values

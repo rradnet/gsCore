@@ -25,6 +25,18 @@ namespace gs
         public event Action<ToolpathPreviewVertex[], int[], int> OnMeshGenerated;
         public event Action<List<Vector3d>, int> OnLineGenerated;
 
+        public static readonly Dictionary<FillTypeFlags, Vector3f> flagColors = new Dictionary<FillTypeFlags, Vector3f>(){
+            { FillTypeFlags.PerimeterShell, new Vector3f(1, 0, 0) },
+            { FillTypeFlags.OutermostShell, new Vector3f(1, 0.5f, 0) },
+            { FillTypeFlags.OuterPerimeter, new Vector3f(1, 1, 0) },
+            { FillTypeFlags.InteriorShell, new Vector3f(0, 0.5f, 0) },
+            { FillTypeFlags.OpenShellCurve, new Vector3f(0, 1, 1) },
+            { FillTypeFlags.SolidInfill, new Vector3f(0, 0.5f, 1) },
+            { FillTypeFlags.SparseInfill, new Vector3f(0.5f, 0, 1) },
+            { FillTypeFlags.SupportMaterial, new Vector3f(1, 0, 1) },
+            { FillTypeFlags.BridgeSupport, new Vector3f(0, 0, 1) }
+        };
+
         public VolumetricBeadVisualizer()
         {
         }
@@ -321,7 +333,10 @@ namespace gs
         {
             Vector3d offset = miterNormal * (dimensions.x * crossSectionVertex.x * secant) + new Vector3d(0, 0, dimensions.y * crossSectionVertex.y);
             Vector3d vertex = point - new Vector3d(positionShift.x, positionShift.y, 0) + offset;
-            vertices.Add(new ToolpathPreviewVertex(vertex, (int)fillType, dimensions, feedrate, layerIndex, pointCount, new Vector3f(1, 0.3, 0.4)));
+            var color = new Vector3f(0.5f, 0.5f, 0.5f);
+            if (flagColors.TryGetValue(fillType, out Vector3f flagColor))
+                color = flagColor;
+            vertices.Add(new ToolpathPreviewVertex(vertex, (int)fillType, dimensions, feedrate, layerIndex, pointCount, color * brightness, brightness));
             return vertices.Count - 1;
         }
 
