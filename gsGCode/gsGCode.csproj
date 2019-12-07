@@ -5,7 +5,7 @@
     <Company>gradientspace</Company>
     <Copyright>Copyright © Ryan Schmidt/gradientspace  2017</Copyright>
     <Authors>Ryan Schmidt</Authors>
-    <SignAssembly>true</SignAssembly>
+    <SignAssembly>false</SignAssembly>
     <AssemblyOriginatorKeyFile>gsGCodeKey.snk</AssemblyOriginatorKeyFile>
     <DelaySign>false</DelaySign>
   </PropertyGroup>
@@ -19,4 +19,20 @@
     <ProjectReference Include="..\gsInterface\gsInterface.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Compile Update="engine\translations\UserSettingTranslations.Designer.cs">
+      <CustomToolNamespace>gs.interfaces</CustomToolNamespace>
+      <DependentUpon>UserSettingTranslations.resx</DependentUpon>
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+    </Compile>
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Update="engine\translations\UserSettingTranslations.resx">
+      <CustomToolNamespace>gs.engines</CustomToolNamespace>
+      <LastGenOutput>UserSettingTranslations.Designer.cs</LastGenOutput>
+      <Generator>ResXFileCodeGenerator</Generator>
+    </EmbeddedResource>
+  </ItemGroup>
 </Project>

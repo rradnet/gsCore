@@ -2,9 +2,9 @@
 {
     public interface IProfile
     {
-        string ManufacturerName { get; }
-        string ModelIdentifier { get; }
-        string ProfileName { get; }
+        string ManufacturerName { get; set; }
+        string ModelIdentifier { get; set; }
+        string ProfileName { get; set; }
 
         double MachineBedSizeXMM { get; }
         double MachineBedSizeYMM { get; }
