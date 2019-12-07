@@ -30,11 +30,10 @@ namespace gs
             writer.WriteFile(file, output);
         }
 
-        public GCodeFile LoadGCode(string path)
+        public GCodeFile LoadGCode(TextReader input)
         {
             GenericGCodeParser parser = new GenericGCodeParser();
-            using (StreamReader fileReader = File.OpenText(path))
-                return parser.Parse(fileReader);
+            return parser.Parse(input);
         }
 
         public GCodeFile GenerateGCode(IList<Tuple<DMesh3, TPrintSettings>> parts,

@@ -21,9 +21,9 @@ namespace gs
                                 Action<GCodeLine> gcodeLineReadyF = null,
                                 Action<string> progressMessageF = null);
 
-        void SaveGCode(TextWriter path, GCodeFile file);
+        void SaveGCode(TextWriter output, GCodeFile file);
 
-        GCodeFile LoadGCode(string path);
+        GCodeFile LoadGCode(TextReader input);
 
         bool AcceptsParts { get; }
         bool AcceptsPartSettings { get; }
