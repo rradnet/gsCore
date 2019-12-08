@@ -12,6 +12,9 @@ namespace gs.interfaces
 
         event Action<ToolpathPreviewVertex[], int[], int> OnMeshGenerated;
         event Action<List<Vector3d>, int> OnLineGenerated;
+
+        string Name { get; }
+        Dictionary<int, string> FillTypeNames { get; }
     }
 
 

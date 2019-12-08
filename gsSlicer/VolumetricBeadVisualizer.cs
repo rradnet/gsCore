@@ -27,7 +27,6 @@ namespace gs
 
         public static readonly Dictionary<FillTypeFlags, Vector3f> flagColors = new Dictionary<FillTypeFlags, Vector3f>(){
             { FillTypeFlags.PerimeterShell, new Vector3f(1, 0, 0) },
-            { FillTypeFlags.OutermostShell, new Vector3f(1, 0.5f, 0) },
             { FillTypeFlags.OuterPerimeter, new Vector3f(1, 1, 0) },
             { FillTypeFlags.InteriorShell, new Vector3f(0, 0.5f, 0) },
             { FillTypeFlags.OpenShellCurve, new Vector3f(0, 1, 1) },
@@ -35,6 +34,20 @@ namespace gs
             { FillTypeFlags.SparseInfill, new Vector3f(0.5f, 0, 1) },
             { FillTypeFlags.SupportMaterial, new Vector3f(1, 0, 1) },
             { FillTypeFlags.BridgeSupport, new Vector3f(0, 0, 1) }
+        };
+
+        public string Name => "Bead Visualizer";
+
+        public Dictionary<int, string> FillTypeNames => new Dictionary<int, string>()
+        {
+            {(int)FillTypeFlags.Unknown, "Unknown" },
+            {(int)FillTypeFlags.PerimeterShell, "Inner Perimeter" },
+            {(int)FillTypeFlags.OuterPerimeter, "Outer Perimeter" },
+            {(int)FillTypeFlags.OpenShellCurve, "Open Mesh Curve" },
+            {(int)FillTypeFlags.SolidInfill, "Solid Fill" },
+            {(int)FillTypeFlags.SparseInfill, "Sparse Fill" },
+            {(int)FillTypeFlags.SupportMaterial, "Support" },
+            {(int)FillTypeFlags.BridgeSupport, "Bridge" },
         };
 
         public VolumetricBeadVisualizer()
