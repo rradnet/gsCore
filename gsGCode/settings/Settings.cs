@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Collections;
+using System.Collections.Generic;
 using System.Reflection;
 
 namespace gs
@@ -86,6 +88,19 @@ namespace gs
                 else if (type.IsArray)
                 {
                     return ((Array)v).Clone();
+                }
+                else if (type.IsGenericType && type.GetGenericTypeDefinition() == typeof(List<>))
+                {
+                    var listType = typeof(List<>);
+                    var t = type.GetGenericArguments();
+                    var constructedListType = listType.MakeGenericType(t[0]);
+                    var instance = Activator.CreateInstance(constructedListType);
+                    foreach (var item in (IEnumerable)v)
+                    {
+                        var a = item;
+                        instance.GetType().GetMethod("Add").Invoke(instance, new[] { CopyValue(item) });
+                    }
+                    return instance;
                 }
                 else if (v is Settings v_typed)
                 {

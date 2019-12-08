@@ -1,6 +1,7 @@
 using gs;
 using gs.info;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using System.Collections.Generic;
 
 namespace gsCore.UnitTests
 {
@@ -41,6 +42,17 @@ namespace gsCore.UnitTests
     internal class SettingsE : Settings
     {
         public SubSettingsBad SubSettings = new SubSettingsBad();
+    }
+
+    internal class SettingsWithListOfDouble : Settings
+    {
+        public List<double> ListOfDouble = new List<double>() {0, 1};
+    }
+
+    internal class SettingsWithListOfSubsetting : Settings
+    {
+        public List<SubSettingsGood> ListOfSubsetting = new List<SubSettingsGood>() 
+        { new SubSettingsGood() };
     }
 
     internal enum EnumNumbers { Zero = 0, One = 1, Two = 2};
@@ -221,6 +233,40 @@ namespace gsCore.UnitTests
             orig.FloatArray[0, 0] = 99;
 
             Assert.AreEqual(10, copy.FloatArray[0,0]);
+        }
+
+        [TestMethod]
+        public void Clone_DoubleList()
+        {
+            var orig = new SettingsWithListOfDouble();
+            orig.ListOfDouble.Add(9);
+
+            var copy = orig.CloneAs<SettingsWithListOfDouble>();
+            orig.ListOfDouble[0] = 7;
+            orig.ListOfDouble[1] = 8;
+
+            Assert.AreEqual(3, copy.ListOfDouble.Count);
+            Assert.AreEqual(0, copy.ListOfDouble[0]);
+            Assert.AreEqual(1, copy.ListOfDouble[1]);
+            Assert.AreEqual(9, copy.ListOfDouble[2]);
+        }
+
+        [TestMethod]
+        public void Clone_SubsettingList()
+        {
+            var orig = new SettingsWithListOfSubsetting();
+            orig.ListOfSubsetting[0].SubFieldX = 0;
+            orig.ListOfSubsetting[0].SubFieldY = 1;
+
+            var copy = orig.CloneAs<SettingsWithListOfSubsetting>();
+
+            orig.ListOfSubsetting[0].SubFieldX = 10;
+            orig.ListOfSubsetting[0].SubFieldY = 20;
+            orig.ListOfSubsetting.Add(new SubSettingsGood());
+
+            Assert.AreEqual(1, copy.ListOfSubsetting.Count);
+            Assert.AreEqual(0, copy.ListOfSubsetting[0].SubFieldX);
+            Assert.AreEqual(1, copy.ListOfSubsetting[0].SubFieldY);
         }
     }
 }
