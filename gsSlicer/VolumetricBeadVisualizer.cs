@@ -25,24 +25,24 @@ namespace gs
         public event Action<ToolpathPreviewVertex[], int[], int> OnMeshGenerated;
         public event Action<List<Vector3d>, int> OnLineGenerated;
 
-        public static readonly Dictionary<FillTypeFlags, Vector3f> flagColors = new Dictionary<FillTypeFlags, Vector3f>(){
-            { FillTypeFlags.PerimeterShell, new Vector3f(1, 0, 0) },
-            { FillTypeFlags.OuterPerimeter, new Vector3f(1, 1, 0) },
-            { FillTypeFlags.InteriorShell, new Vector3f(0, 0.5f, 0) },
-            { FillTypeFlags.OpenShellCurve, new Vector3f(0, 1, 1) },
-            { FillTypeFlags.SolidInfill, new Vector3f(0, 0.5f, 1) },
-            { FillTypeFlags.SparseInfill, new Vector3f(0.5f, 0, 1) },
-            { FillTypeFlags.SupportMaterial, new Vector3f(1, 0, 1) },
-            { FillTypeFlags.BridgeSupport, new Vector3f(0, 0, 1) }
+        public static readonly Dictionary<int, Vector3f> flagColors = new Dictionary<int, Vector3f>(){
+            {(int)FillTypeFlags.Unknown, new Vector3f(0.5, 0.5, 0.5) },
+            {(int)FillTypeFlags.PerimeterShell, new Vector3f(1, 0, 0) },
+            {(int)FillTypeFlags.OutermostShell, new Vector3f(1, 1, 0) },
+            {(int)FillTypeFlags.OpenShellCurve, new Vector3f(0, 1, 1) },
+            {(int)FillTypeFlags.SolidInfill, new Vector3f(0, 0.5f, 1) },
+            {(int)FillTypeFlags.SparseInfill, new Vector3f(0.5f, 0, 1) },
+            {(int)FillTypeFlags.SupportMaterial, new Vector3f(1, 0, 1) },
+            {(int)FillTypeFlags.BridgeSupport, new Vector3f(0, 0, 1) }
         };
 
         public string Name => "Bead Visualizer";
 
         public Dictionary<int, string> FillTypeNames => new Dictionary<int, string>()
         {
-            {(int)FillTypeFlags.Unknown, "Unknown" },
+            {(int)FillTypeFlags.Unknown, "Other" },
             {(int)FillTypeFlags.PerimeterShell, "Inner Perimeter" },
-            {(int)FillTypeFlags.OuterPerimeter, "Outer Perimeter" },
+            {(int)FillTypeFlags.OutermostShell, "Outer Perimeter" },
             {(int)FillTypeFlags.OpenShellCurve, "Open Mesh Curve" },
             {(int)FillTypeFlags.SolidInfill, "Solid Fill" },
             {(int)FillTypeFlags.SparseInfill, "Sparse Fill" },
@@ -105,6 +105,10 @@ namespace gs
                     if (extrusion > lastVertex.Extrusion.x)
                     {
                         lastVertex.Source = fillType;
+                        lastVertex.Dimensions = vertex.Dimensions;
+                        lastVertex.FeedRate = vertex.FeedRate;
+                        lastVertex.ExtendedData = vertex.ExtendedData;
+
                         toolpath = new List<PrintVertex> { lastVertex, vertex };
                     }
                     else
@@ -346,8 +350,9 @@ namespace gs
         {
             Vector3d offset = miterNormal * (dimensions.x * crossSectionVertex.x * secant) + new Vector3d(0, 0, dimensions.y * crossSectionVertex.y);
             Vector3d vertex = point - new Vector3d(positionShift.x, positionShift.y, 0) + offset;
-            var color = new Vector3f(0.5f, 0.5f, 0.5f);
-            if (flagColors.TryGetValue(fillType, out Vector3f flagColor))
+
+            Vector3f color = flagColors[(int)FillTypeFlags.Unknown]; ;
+            if (flagColors.TryGetValue((int)fillType, out Vector3f flagColor))
                 color = flagColor;
             vertices.Add(new ToolpathPreviewVertex(vertex, (int)fillType, dimensions, feedrate, layerIndex, pointCount, color * brightness, brightness));
             return vertices.Count - 1;
@@ -429,13 +434,11 @@ namespace gs
         {
             if (line.comment != null)
             {
-                int indexOfFillType = line.comment.IndexOf("Fill Type");
+                int indexOfFillType = line.comment.IndexOf("feature");
                 if (indexOfFillType >= 0)
                 {
-                    if (int.TryParse(line.comment.Substring(indexOfFillType + 9), out int value))
-                    {
-                        fillType = (FillTypeFlags)value;
-                    }
+                    var featureName = line.comment.Substring(indexOfFillType + 8).Trim();
+                    fillType = SingleMaterialFFFCompiler.FlagFromFeatureName(featureName);
                 }
             }
         }
