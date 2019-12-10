@@ -25,29 +25,18 @@ namespace gs
         public event Action<ToolpathPreviewVertex[], int[], int> OnMeshGenerated;
         public event Action<List<Vector3d>, int> OnLineGenerated;
 
-        public static readonly Dictionary<int, Vector3f> flagColors = new Dictionary<int, Vector3f>(){
-            {(int)FillTypeFlags.Unknown, new Vector3f(0.5, 0.5, 0.5) },
-            {(int)FillTypeFlags.PerimeterShell, new Vector3f(1, 0, 0) },
-            {(int)FillTypeFlags.OutermostShell, new Vector3f(1, 1, 0) },
-            {(int)FillTypeFlags.OpenShellCurve, new Vector3f(0, 1, 1) },
-            {(int)FillTypeFlags.SolidInfill, new Vector3f(0, 0.5f, 1) },
-            {(int)FillTypeFlags.SparseInfill, new Vector3f(0.5f, 0, 1) },
-            {(int)FillTypeFlags.SupportMaterial, new Vector3f(1, 0, 1) },
-            {(int)FillTypeFlags.BridgeSupport, new Vector3f(0, 0, 1) }
-        };
-
         public string Name => "Bead Visualizer";
 
-        public Dictionary<int, string> FillTypeNames => new Dictionary<int, string>()
+        public Dictionary<int, FillType> FillTypes { get; protected set; } = new Dictionary<int, FillType>()
         {
-            {(int)FillTypeFlags.Unknown, "Other" },
-            {(int)FillTypeFlags.PerimeterShell, "Inner Perimeter" },
-            {(int)FillTypeFlags.OutermostShell, "Outer Perimeter" },
-            {(int)FillTypeFlags.OpenShellCurve, "Open Mesh Curve" },
-            {(int)FillTypeFlags.SolidInfill, "Solid Fill" },
-            {(int)FillTypeFlags.SparseInfill, "Sparse Fill" },
-            {(int)FillTypeFlags.SupportMaterial, "Support" },
-            {(int)FillTypeFlags.BridgeSupport, "Bridge" },
+            {(int)FillTypeFlags.Unknown, new FillType("Unknown", new Vector3f(0.5, 0.5, 0.5))},
+            {(int)FillTypeFlags.PerimeterShell, new FillType("Inner Perimeter", new Vector3f(1, 0, 0))},
+            {(int)FillTypeFlags.OutermostShell, new FillType("Outer Perimeter", new Vector3f(1, 1, 0))},
+            {(int)FillTypeFlags.OpenShellCurve, new FillType("Open Mesh Curve", new Vector3f(0, 1, 1))},
+            {(int)FillTypeFlags.SolidInfill, new FillType("Solid Fill", new Vector3f(0, 0.5f, 1))},
+            {(int)FillTypeFlags.SparseInfill, new FillType("Sparse Fill", new Vector3f(0.5f, 0, 1))},
+            {(int)FillTypeFlags.SupportMaterial, new FillType("Support", new Vector3f(1, 0, 1))},
+            {(int)FillTypeFlags.BridgeSupport, new FillType("Bridge", new Vector3f(0, 0, 1))},
         };
 
         public VolumetricBeadVisualizer()
@@ -226,7 +215,7 @@ namespace gs
             }
         }
 
-        private static ToolpathPreviewJoint GenerateMiterJoint(List<PrintVertex> toolpath, int toolpathIndex, int layerIndex, Vector2d positionShift, int startPointCount, List<ToolpathPreviewVertex> vertices)
+        private ToolpathPreviewJoint GenerateMiterJoint(List<PrintVertex> toolpath, int toolpathIndex, int layerIndex, Vector2d positionShift, int startPointCount, List<ToolpathPreviewVertex> vertices)
         {
 
             double miterSecant = 1;
@@ -267,7 +256,7 @@ namespace gs
             return joint;
         }
 
-        private static ToolpathPreviewJoint GenerateRightBevelJoint(List<PrintVertex> toolpath, int toolpathIndex, int layerIndex, Vector2d positionShift, int startPointCount, List<ToolpathPreviewVertex> vertices, List<int> triangles)
+        private ToolpathPreviewJoint GenerateRightBevelJoint(List<PrintVertex> toolpath, int toolpathIndex, int layerIndex, Vector2d positionShift, int startPointCount, List<ToolpathPreviewVertex> vertices, List<int> triangles)
         {
 
             Vector3d a = toolpath[toolpathIndex - 1].Position;
@@ -306,7 +295,7 @@ namespace gs
             return joint;
         }
 
-        private static ToolpathPreviewJoint GenerateLeftBevelJoint(List<PrintVertex> toolpath, int toolpathIndex, int layerIndex, Vector2d positionShift, int startPointCount, List<ToolpathPreviewVertex> vertices, List<int> triangles)
+        private ToolpathPreviewJoint GenerateLeftBevelJoint(List<PrintVertex> toolpath, int toolpathIndex, int layerIndex, Vector2d positionShift, int startPointCount, List<ToolpathPreviewVertex> vertices, List<int> triangles)
         {
 
             Vector3d a = toolpath[toolpathIndex - 1].Position;
@@ -346,14 +335,17 @@ namespace gs
             return joint;
         }
 
-        private static int AddVertex(List<ToolpathPreviewVertex> vertices, Vector2d positionShift, int layerIndex, Vector3d point, FillTypeFlags fillType, Vector2d dimensions, double feedrate, Vector3d miterNormal, Vector2d crossSectionVertex, double secant, float brightness, int pointCount)
+        private int AddVertex(List<ToolpathPreviewVertex> vertices, Vector2d positionShift, int layerIndex, Vector3d point, FillTypeFlags fillType, Vector2d dimensions, double feedrate, Vector3d miterNormal, Vector2d crossSectionVertex, double secant, float brightness, int pointCount)
         {
             Vector3d offset = miterNormal * (dimensions.x * crossSectionVertex.x * secant) + new Vector3d(0, 0, dimensions.y * crossSectionVertex.y);
             Vector3d vertex = point - new Vector3d(positionShift.x, positionShift.y, 0) + offset;
 
-            Vector3f color = flagColors[(int)FillTypeFlags.Unknown]; ;
-            if (flagColors.TryGetValue((int)fillType, out Vector3f flagColor))
-                color = flagColor;
+            Vector3f color = FillTypes[(int)FillTypeFlags.Unknown].Color;
+            if (FillTypes.TryGetValue((int)fillType, out var fillInfo))
+            {
+                color = fillInfo.Color;
+
+            }
             vertices.Add(new ToolpathPreviewVertex(vertex, (int)fillType, dimensions, feedrate, layerIndex, pointCount, color * brightness, brightness));
             return vertices.Count - 1;
         }

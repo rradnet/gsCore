@@ -14,10 +14,20 @@ namespace gs.interfaces
         event Action<List<Vector3d>, int> OnLineGenerated;
 
         string Name { get; }
-        Dictionary<int, string> FillTypeNames { get; }
+        Dictionary<int, FillType> FillTypes { get; }
     }
 
+    public struct FillType
+    {
+        public readonly string Label;
+        public readonly Vector3f Color;
 
+        public FillType(string label, Vector3f color)
+        {
+            Label = label;
+            Color = color;
+        }
+    }
 
     public struct ToolpathPreviewVertex
     {
