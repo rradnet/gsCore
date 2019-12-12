@@ -59,6 +59,8 @@ namespace gs
 
         public void ProcessGCodeLine(GCodeLine line)
         {
+            if (line == null || line.type == GCodeLine.LType.Blank)
+                return;
 
             pointCount++;
 
