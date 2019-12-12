@@ -80,7 +80,15 @@ namespace gs.interfaces
         public override void LoadFromRaw(TSettings settings) { Value = loadF(settings); }
         public override void ApplyToRaw(TSettings settings) { applyF(settings, Value); }
         public override object GetFromRaw(TSettings settings) { return loadF(settings); }
-        public override void SetToRaw(TSettings settings, object value) { applyF(settings, (TValue)value); }
+        public override void SetToRaw(TSettings settings, object value) {
+            TValue tValue;
+            try {
+                tValue = (TValue)Convert.ChangeType(value, typeof(TValue));
+            } catch (Exception e) {
+                throw new InvalidCastException($"Setting {Name}: Function SetToRaw received an object of type {value.GetType()}, expected {typeof(TValue)}.", e);
+            }
+            applyF(settings, tValue);
+        }
 
         public override ValidationResult Validation
         {
