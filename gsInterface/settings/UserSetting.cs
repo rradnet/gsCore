@@ -18,6 +18,8 @@ namespace gs.interfaces
         public abstract void SetToRaw(object settings, object value);
 
         public abstract ValidationResult Validation { get; }
+        public abstract ValidationResult Validate(object value);
+
         public UserSetting(Func<string> nameF, Func<string> descriptionF = null, UserSettingGroup group = null)
         {
             NameF = nameF;
@@ -56,8 +58,7 @@ namespace gs.interfaces
         public abstract void SetToRaw(TSettings settings, object value);
     }
 
-    public class UserSetting<TSettings, TValue> : UserSetting<TSettings>
-    {
+    public class UserSetting<TSettings, TValue> : UserSetting<TSettings> {
         public TValue Value { get; set; }
 
         private readonly Func<TValue, ValidationResult> validateF;
@@ -70,8 +71,7 @@ namespace gs.interfaces
             UserSettingGroup group,
             Func<TSettings, TValue> loadF,
             Action<TSettings, TValue> applyF,
-            Func<TValue, ValidationResult> validateF = null) : base(nameF, descriptionF, group)
-        {
+            Func<TValue, ValidationResult> validateF = null) : base(nameF, descriptionF, group) {
             this.validateF = validateF;
             this.applyF = applyF;
             this.loadF = loadF;
@@ -90,14 +90,21 @@ namespace gs.interfaces
             applyF(settings, tValue);
         }
 
-        public override ValidationResult Validation
-        {
-            get
-            {
+        public override ValidationResult Validation {
+            get {
                 if (validateF != null)
                     return validateF(Value);
                 return new ValidationResult();
             }
+        }
+
+        public override ValidationResult Validate(object value) {
+            if (value is TValue tValue) {
+                if (validateF != null)
+                    return validateF(tValue);
+                return new ValidationResult();
+            }
+            return new ValidationResult(ValidationResult.Level.Error, "Invalid cast");
         }
     }
 }
