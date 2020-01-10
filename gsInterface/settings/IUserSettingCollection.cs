@@ -53,12 +53,21 @@ namespace gs.interfaces
             PropertyInfo[] properties = GetType().GetProperties();
             foreach (PropertyInfo property in properties)
                 if (typeof(UserSetting<TSettings>).IsAssignableFrom(property.PropertyType))
-                    yield return (UserSetting<TSettings>)property.GetValue(this);
+                {
+                    var setting = (UserSetting<TSettings>)property.GetValue(this);
+                    if (!setting.Hidden)
+                        yield return setting;
+                }
+
             
             FieldInfo[] fields = GetType().GetFields();
             foreach (FieldInfo field in fields)
                 if (typeof(UserSetting<TSettings>).IsAssignableFrom(field.FieldType))
-                    yield return (UserSetting<TSettings>)field.GetValue(this);
+                {
+                    var setting = (UserSetting<TSettings>)field.GetValue(this);
+                    if (!setting.Hidden)
+                        yield return setting;
+                }
         }
 
         /// <summary>

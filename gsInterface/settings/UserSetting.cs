@@ -30,6 +30,10 @@ namespace gs.interfaces
 
     public abstract class UserSetting<TSettings> : UserSetting
     {
+        // Can be used to hide settings in inherited UserSettingsCollection classes
+        public bool Hidden { get; set; } = false;
+
+
         public UserSetting(Func<string> nameF,
                            Func<string> descriptionF = null,
                            UserSettingGroup group = null) : base(nameF, descriptionF, group)
