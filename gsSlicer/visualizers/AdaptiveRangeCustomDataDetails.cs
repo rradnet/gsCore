@@ -5,18 +5,16 @@ using gs.interfaces;
 
 namespace gs
 {
-    public class AdaptiveRangeCustomDataDetails : IVisualizerCustomDataDetails
+    public class AdaptiveRangeCustomDataDetails : CustomDataDetails
     {
-        private readonly Func<string> labelF;
-        public string Label { get => labelF(); }
-
         private Interval1d interval = Interval1d.Empty;
-        public float RangeMin { get => (float)interval.a; }
-        public float RangeMax { get => (float)interval.b; }
+        public override float RangeMin { get => (float)interval.a; }
+        public override float RangeMax { get => (float)interval.b; }
 
-        public AdaptiveRangeCustomDataDetails(Func<string> labelF)
+        public AdaptiveRangeCustomDataDetails(
+            Func<string> labelF, Func<float, string> colorScaleLabelerF) 
+            : base(labelF, colorScaleLabelerF)
         {
-            this.labelF = labelF;
         }
 
         public void ObserveValue(float value)

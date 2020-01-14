@@ -40,12 +40,15 @@ namespace gs
         };
 
         private FixedRangeCustomDataDetails customDataBeadWidth = 
-            new FixedRangeCustomDataDetails(0.1f, 0.8f, () => "Bead Width");
+            new FixedRangeCustomDataDetails(
+                () => "Bead Width", 
+                (value) => $"{value:F2} mm", 0.1f, 0.8f);
         public IVisualizerCustomDataDetails CustomDataDetails0 => customDataBeadWidth;
 
-
         private AdaptiveRangeCustomDataDetails customDataFeedRate =
-            new AdaptiveRangeCustomDataDetails(() => "Feed Rate");
+            new AdaptiveRangeCustomDataDetails(
+                () => "Feed Rate",
+                (value) => $"{value:F0} mm/min");
         public IVisualizerCustomDataDetails CustomDataDetails1 => customDataFeedRate;
 
         public IVisualizerCustomDataDetails CustomDataDetails2 => null;
