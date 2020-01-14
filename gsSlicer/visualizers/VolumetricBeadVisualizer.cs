@@ -39,6 +39,20 @@ namespace gs
             {(int)FillTypeFlags.BridgeSupport, new FillType("Bridge", new Vector3f(0, 0, 1))},
         };
 
+        private FixedRangeCustomDataDetails customDataBeadWidth = 
+            new FixedRangeCustomDataDetails(0.1f, 0.8f, () => "Bead Width");
+        public IVisualizerCustomDataDetails CustomDataDetails0 => customDataBeadWidth;
+
+
+        private AdaptiveRangeCustomDataDetails customDataFeedRate =
+            new AdaptiveRangeCustomDataDetails(() => "Feed Rate");
+        public IVisualizerCustomDataDetails CustomDataDetails1 => customDataFeedRate;
+
+        public IVisualizerCustomDataDetails CustomDataDetails2 => null;
+        public IVisualizerCustomDataDetails CustomDataDetails3 => null;
+        public IVisualizerCustomDataDetails CustomDataDetails4 => null;
+        public IVisualizerCustomDataDetails CustomDataDetails5 => null;
+
         public VolumetricBeadVisualizer()
         {
         }
@@ -346,9 +360,15 @@ namespace gs
             if (FillTypes.TryGetValue((int)fillType, out var fillInfo))
             {
                 color = fillInfo.Color;
-
             }
-            vertices.Add(new ToolpathPreviewVertex(vertex, (int)fillType, dimensions, feedrate, layerIndex, pointCount, color * brightness, brightness));
+
+            vertices.Add(new ToolpathPreviewVertex(vertex,
+                (int)fillType, layerIndex, color, brightness,
+                (float)dimensions.x, (float)feedrate));
+
+            // Update adaptive ranges for custom data
+            customDataFeedRate.ObserveValue((float)feedrate);
+
             return vertices.Count - 1;
         }
 
