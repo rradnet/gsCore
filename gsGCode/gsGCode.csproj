@@ -1,0 +1,38 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netstandard2.0</TargetFramework>
+    <Company>gradientspace</Company>
+    <Copyright>Copyright © Ryan Schmidt/gradientspace  2017</Copyright>
+    <Authors>Ryan Schmidt</Authors>
+    <SignAssembly>false</SignAssembly>
+    <AssemblyOriginatorKeyFile>gsGCodeKey.snk</AssemblyOriginatorKeyFile>
+    <DelaySign>false</DelaySign>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Newtonsoft.Json" Version="12.0.3" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\geometry3Sharp\geometry3Sharp.csproj" />
+    <ProjectReference Include="..\gsInterface\gsInterface.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Update="engine\translations\UserSettingTranslations.Designer.cs">
+      <CustomToolNamespace>gs.interfaces</CustomToolNamespace>
+      <DependentUpon>UserSettingTranslations.resx</DependentUpon>
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+    </Compile>
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Update="engine\translations\UserSettingTranslations.resx">
+      <CustomToolNamespace>gs.engines</CustomToolNamespace>
+      <LastGenOutput>UserSettingTranslations.Designer.cs</LastGenOutput>
+      <Generator>ResXFileCodeGenerator</Generator>
+    </EmbeddedResource>
+  </ItemGroup>
+</Project>

@@ -1,0 +1,7 @@
+{
+  "profiles": {
+    "gsGCode": {
+      "commandName": "Project"
+    }
+  }
+}

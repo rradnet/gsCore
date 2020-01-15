@@ -1,0 +1,34 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netstandard2.0</TargetFramework>
+    <Copyright>Copyright © Ryan Schmidt/gradientspace  2017</Copyright>
+    <Authors>Ryan Schmidt</Authors>
+    <Company>gradientspace</Company>
+    <RootNamespace>gs</RootNamespace>
+    <AssemblyVersion>1.0.0.0</AssemblyVersion>
+    <FileVersion>1.0.0.0</FileVersion>
+    <SignAssembly>false</SignAssembly>
+    <DelaySign>false</DelaySign>
+    <AssemblyOriginatorKeyFile>gsSlicerKey.snk</AssemblyOriginatorKeyFile>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Remove="thirdparty\**" />
+    <EmbeddedResource Remove="thirdparty\**" />
+    <None Remove="thirdparty\**" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Newtonsoft.Json" Version="12.0.3" />
+    <PackageReference Include="System.ComponentModel.Composition" Version="4.7.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\geometry3Sharp\geometry3Sharp.csproj" />
+    <ProjectReference Include="..\gsGCode\gsGCode.csproj" />
+    <ProjectReference Include="..\gsInterface\gsInterface.csproj" />
+    <ProjectReference Include="thirdparty\clipper_library\clipper_library.csproj" />
+  </ItemGroup>
+
+</Project>

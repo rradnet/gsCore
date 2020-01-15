@@ -1,0 +1,17 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netstandard2.0</TargetFramework>
+    <Authors>Angus Johnson</Authors>
+    <Company>Angus Johnson</Company>
+    <Copyright>Copyright © Angus Johnson 2010-14</Copyright>
+    <SignAssembly>false</SignAssembly>
+    <DelaySign>false</DelaySign>
+    <AssemblyOriginatorKeyFile>clipper_library.Key.snk</AssemblyOriginatorKeyFile>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\geometry3Sharp\geometry3Sharp.csproj" />
+  </ItemGroup>
+
+</Project>
