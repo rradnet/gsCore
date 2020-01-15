@@ -371,16 +371,22 @@ namespace gs
                 color = fillInfo.Color;
             }
 
-            vertices.Add(new ToolpathPreviewVertex(vertex,
-                (int)fillType, layerIndex, color, brightness,
-                (float)dimensions.x, (float)feedrate, pointCount));
+            vertices.Add(VertexFactory(layerIndex, fillType, dimensions, feedrate, brightness, pointCount, vertex, color));
 
+            return vertices.Count - 1;
+        }
+
+        protected virtual ToolpathPreviewVertex VertexFactory(int layerIndex, FillTypeFlags fillType, Vector2d dimensions, double feedrate, float brightness, int pointCount, Vector3d vertex, Vector3f color)
+        {
             // Update adaptive ranges for custom data
             customDataFeedRate.ObserveValue((float)feedrate);
             customDataCompletion.ObserveValue(pointCount);
 
-            return vertices.Count - 1;
+            return new ToolpathPreviewVertex(vertex,
+                (int)fillType, layerIndex, color, brightness,
+                (float)dimensions.x, (float)feedrate, pointCount);
         }
+
 
         private static Vector3d GetNormalAndSecant(Vector3d ab, Vector3d bc, out double secant)
         {
