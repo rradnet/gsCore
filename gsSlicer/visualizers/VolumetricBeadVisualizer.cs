@@ -7,23 +7,23 @@ using gs.interfaces;
 namespace gs
 {
     public class VolumetricBeadVisualizer : IVisualizer
-    {        
-        Vector3d position = default;
-        double feedrate = default;
-        double extrusion = default;
-        Vector2d dimensions = default;
-        FillTypeFlags fillType = default;
-        int layerIndex = default;
-        int pointCount = default;
-        Vector2d positionShift;
+    {
+        protected Vector3d position = default;
+        protected double feedrate = default;
+        protected double extrusion = default;
+        protected Vector2d dimensions = default;
+        protected FillTypeFlags fillType = default;
+        protected int layerIndex = default;
+        protected int pointCount = default;
+        protected Vector2d positionShift;
 
-        List<PrintVertex> toolpath = null;
-        PrintVertex lastVertex = default;
+        protected List<PrintVertex> toolpath = null;
+        protected PrintVertex lastVertex = default;
 
         public SingleMaterialFFFSettings settings = null;
 
-        public event Action<ToolpathPreviewVertex[], int[], int> OnMeshGenerated;
-        public event Action<List<Vector3d>, int> OnLineGenerated;
+        public virtual event Action<ToolpathPreviewVertex[], int[], int> OnMeshGenerated;
+        public virtual event Action<List<Vector3d>, int> OnLineGenerated;
 
         public string Name => "Bead Visualizer";
 
@@ -39,9 +39,9 @@ namespace gs
             {(int)FillTypeFlags.BridgeSupport, new FillType("Bridge", new Vector3f(0, 0, 1))},
         };
 
-        private FixedRangeCustomDataDetails customDataBeadWidth = 
+        private FixedRangeCustomDataDetails customDataBeadWidth =
             new FixedRangeCustomDataDetails(
-                () => "Bead Width", 
+                () => "Bead Width",
                 (value) => $"{value:F2} mm", 0.1f, 0.8f);
         public IVisualizerCustomDataDetails CustomDataDetails0 => customDataBeadWidth;
 
@@ -77,9 +77,11 @@ namespace gs
             Vector2d originRepositioning = new Vector2d(settings.Machine.BedOriginFactorX, settings.Machine.BedOriginFactorY);
             Vector2d bedSize = new Vector2d(settings.Machine.BedSizeXMM, settings.Machine.BedSizeYMM);
             positionShift = originRepositioning * bedSize;
+
+            lastVertex = new PrintVertex(Vector3d.Zero, 0, Vector2d.Zero);
         }
 
-        public void ProcessGCodeLine(GCodeLine line)
+        public virtual void ProcessGCodeLine(GCodeLine line)
         {
             if (line == null || line.type == GCodeLine.LType.Blank)
                 return;
@@ -102,12 +104,9 @@ namespace gs
             ExtractDimensions(line, ref dimensions);
             ExtractFillType(line, ref fillType);
 
-            PrintVertex vertex = new PrintVertex
+            PrintVertex vertex = new PrintVertex(position, feedrate, dimensions)
             {
-                Position = position,
-                FeedRate = feedrate,
                 Extrusion = new Vector3d(extrusion, 0, 0),
-                Dimensions = dimensions,
                 Source = fillType,
             };
 
@@ -127,7 +126,7 @@ namespace gs
                     }
                     else
                     {
-                        OnLineGenerated(new List<Vector3d>() { lastVertex.Position, vertex.Position }, layerIndex);
+                        RaiseLineGenerated(new List<Vector3d>() { lastVertex.Position, vertex.Position }, layerIndex);
                     }
                 }
                 else
@@ -144,6 +143,11 @@ namespace gs
             lastVertex = vertex;
         }
 
+        protected void RaiseLineGenerated(List<Vector3d> list, int layerIndex)
+        {
+            OnLineGenerated(list, layerIndex);
+        }
+
         public void EndGCodeLineStream()
         {
             if (toolpath != null)
@@ -152,9 +156,8 @@ namespace gs
             }
         }
 
-        private void Emit(List<PrintVertex> toolpath, int layerIndex, int startPointCount)
+        protected void Emit(List<PrintVertex> toolpath, int layerIndex, int startPointCount)
         {
-
             Func<Tuple<ToolpathPreviewVertex[], int[]>> func = () => {
 
                 List<ToolpathPreviewVertex> vertices = new List<ToolpathPreviewVertex>();
@@ -198,7 +201,7 @@ namespace gs
             func.BeginInvoke((ar) => EndEmit(func, layerIndex, ar), null);
         }
 
-        private void AddEdges(ToolpathPreviewJoint[] joints, List<int> triangles)
+        protected void AddEdges(ToolpathPreviewJoint[] joints, List<int> triangles)
         {
             for (int i = joints.Length - 2; i >= 0; i--)
             {
@@ -240,7 +243,7 @@ namespace gs
             }
         }
 
-        private ToolpathPreviewJoint GenerateMiterJoint(List<PrintVertex> toolpath, int toolpathIndex, int layerIndex, Vector2d positionShift, int startPointCount, List<ToolpathPreviewVertex> vertices)
+        protected ToolpathPreviewJoint GenerateMiterJoint(List<PrintVertex> toolpath, int toolpathIndex, int layerIndex, Vector2d positionShift, int startPointCount, List<ToolpathPreviewVertex> vertices)
         {
 
             double miterSecant = 1;
@@ -269,7 +272,7 @@ namespace gs
             var pointCount = startPointCount + toolpathIndex;
             var point = toolpath[toolpathIndex].Position;
             var dimensions = toolpath[toolpathIndex].Dimensions;
-            var fillType = (FillTypeFlags)toolpath[toolpathIndex].Source;
+            var fillType = (FillTypeFlags)(toolpath[toolpathIndex]?.Source ?? FillTypeFlags.Unknown);
             var feedRate = toolpath[toolpathIndex].FeedRate;
             ToolpathPreviewJoint joint = new ToolpathPreviewJoint();
 
@@ -281,7 +284,7 @@ namespace gs
             return joint;
         }
 
-        private ToolpathPreviewJoint GenerateRightBevelJoint(List<PrintVertex> toolpath, int toolpathIndex, int layerIndex, Vector2d positionShift, int startPointCount, List<ToolpathPreviewVertex> vertices, List<int> triangles)
+        protected ToolpathPreviewJoint GenerateRightBevelJoint(List<PrintVertex> toolpath, int toolpathIndex, int layerIndex, Vector2d positionShift, int startPointCount, List<ToolpathPreviewVertex> vertices, List<int> triangles)
         {
 
             Vector3d a = toolpath[toolpathIndex - 1].Position;
@@ -320,7 +323,7 @@ namespace gs
             return joint;
         }
 
-        private ToolpathPreviewJoint GenerateLeftBevelJoint(List<PrintVertex> toolpath, int toolpathIndex, int layerIndex, Vector2d positionShift, int startPointCount, List<ToolpathPreviewVertex> vertices, List<int> triangles)
+        protected ToolpathPreviewJoint GenerateLeftBevelJoint(List<PrintVertex> toolpath, int toolpathIndex, int layerIndex, Vector2d positionShift, int startPointCount, List<ToolpathPreviewVertex> vertices, List<int> triangles)
         {
 
             Vector3d a = toolpath[toolpathIndex - 1].Position;
@@ -360,7 +363,7 @@ namespace gs
             return joint;
         }
 
-        private int AddVertex(List<ToolpathPreviewVertex> vertices, Vector2d positionShift, int layerIndex, Vector3d point, FillTypeFlags fillType, Vector2d dimensions, double feedrate, Vector3d miterNormal, Vector2d crossSectionVertex, double secant, float brightness, int pointCount)
+        protected virtual int AddVertex(List<ToolpathPreviewVertex> vertices, Vector2d positionShift, int layerIndex, Vector3d point, FillTypeFlags fillType, Vector2d dimensions, double feedrate, Vector3d miterNormal, Vector2d crossSectionVertex, double secant, float brightness, int pointCount)
         {
             Vector3d offset = miterNormal * (dimensions.x * crossSectionVertex.x * secant) + new Vector3d(0, 0, dimensions.y * crossSectionVertex.y);
             Vector3d vertex = point - new Vector3d(positionShift.x, positionShift.y, 0) + offset;
@@ -387,15 +390,14 @@ namespace gs
                 (float)dimensions.x, (float)feedrate, pointCount);
         }
 
-
-        private static Vector3d GetNormalAndSecant(Vector3d ab, Vector3d bc, out double secant)
+        protected static Vector3d GetNormalAndSecant(Vector3d ab, Vector3d bc, out double secant)
         {
             secant = 1 / Math.Cos(Vector3d.AngleR(ab, bc) * 0.5);
             Vector3d tangent = ab + bc;
             return new Vector3d(-tangent.y, tangent.x, 0).Normalized;
         }
 
-        private static double SignedAngleRad(Vector2d a, Vector2d b)
+        protected static double SignedAngleRad(Vector2d a, Vector2d b)
         {
             var angleB = Math.Atan2(b.y, b.x);
             var angleA = Math.Atan2(a.y, a.x);
@@ -407,7 +409,7 @@ namespace gs
             return ret;
         }
 
-        private struct ToolpathPreviewJoint
+        protected struct ToolpathPreviewJoint
         {
             public int in0;
             public int in1;
@@ -420,13 +422,13 @@ namespace gs
             public int out3;
         }
 
-        private void EndEmit(Func<Tuple<ToolpathPreviewVertex[], int[]>> func, int layerIndex, IAsyncResult ar)
+        protected void EndEmit(Func<Tuple<ToolpathPreviewVertex[], int[]>> func, int layerIndex, IAsyncResult ar)
         {
             var mesh = func.EndInvoke(ar);
             OnMeshGenerated.Invoke(mesh.Item1, mesh.Item2, layerIndex);
         }
 
-        private static void ExtractPositionFeedrateAndExtrusion(GCodeLine line, ref Vector3d position, ref double feedrate, ref double extrusion)
+        protected static void ExtractPositionFeedrateAndExtrusion(GCodeLine line, ref Vector3d position, ref double feedrate, ref double extrusion)
         {
             if (line.parameters != null)
             {
@@ -444,7 +446,7 @@ namespace gs
             }
         }
 
-        private static void ExtractDimensions(GCodeLine line, ref Vector2d dimensions)
+        protected virtual void ExtractDimensions(GCodeLine line, ref Vector2d dimensions)
         {
             if (line.comment != null && line.comment.Contains("tool"))
             {
@@ -460,7 +462,7 @@ namespace gs
             }
         }
 
-        private static void ExtractFillType(GCodeLine line, ref FillTypeFlags fillType)
+        protected virtual void ExtractFillType(GCodeLine line, ref FillTypeFlags fillType)
         {
             if (line.comment != null)
             {
