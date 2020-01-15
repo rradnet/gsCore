@@ -43,14 +43,20 @@ namespace gs
         /// </summary>
         public virtual Action<string> EmitMessageF { get; set; }
 
+        private FeatureTypeLabeler featureTypeLabeler; 
 
         public SingleMaterialFFFCompiler(GCodeBuilder builder, SingleMaterialFFFSettings settings, AssemblerFactoryF AssemblerF)
         {
             Builder = builder;
             Settings = settings;
             this.AssemblerF = AssemblerF;
+            featureTypeLabeler = CreateFeatureTypeLabeler();
         }
 
+        protected virtual FeatureTypeLabeler CreateFeatureTypeLabeler()
+        {
+            return FeatureTypeLabelerFFF.Value;
+        }
 
         public Vector3d NozzlePosition
         {
@@ -114,9 +120,6 @@ namespace gs
 
                 LinearToolpath p = gpath as LinearToolpath;
 
-                if (p.Type != ToolpathTypes.Travel && p.Type != ToolpathTypes.PlaneChange)
-                    AppendComment(" feature " + FeatureNameFromFlag(p.TypeModifiers));
-
                 if (p[0].Position.Distance(Assembler.NozzlePosition) > 0.00001)
                     throw new Exception("SingleMaterialFFFCompiler.AppendPaths: path " + path_index + ": Start of path is not same as end of previous path!");
 
@@ -148,14 +151,17 @@ namespace gs
                         Assembler.EndTravel();
                         //Assembler.EnableFan();
                     }
-
                 }
 
                 i = 1;      // do not need to emit code for first point of path, 
                             // we are already at this pos
 
                 var currentDimensions = p[1].Dimensions;
-                AppendDimensions(currentDimensions);
+                if (p.Type == ToolpathTypes.Deposition)
+                {
+                    AddFeatureTypeLabel(p.TypeModifiers);
+                    AppendDimensions(currentDimensions);
+                }
 
                 for (; i < p.VertexCount; ++i)
                 {
@@ -185,40 +191,13 @@ namespace gs
             Assembler.FlushQueues();
         }
 
-        public static string FeatureNameFromFlag(FillTypeFlags flag)
+        private void AddFeatureTypeLabel(FillTypeFlags typeModifier)
         {
-            var flagInt = (int)flag;
-            if (FlagToFeatureNameDictionary.TryGetValue(flagInt, out string name))
-            {
-                return name;
-            }
-            else
-            {
-                return FlagToFeatureNameDictionary[(int)FillTypeFlags.Unknown];
-            }
-        }
+            var featureLabel = featureTypeLabeler.FeatureLabelFromFillTypeFlag(typeModifier);
 
-        public static FillTypeFlags FlagFromFeatureName(string name)
-        {
-            foreach (var pair in FlagToFeatureNameDictionary)
-                if (pair.Value.Equals(name)) 
-                    return (FillTypeFlags)pair.Key;
-            return FillTypeFlags.Unknown;
+            Builder.AddExplicitLine("");
+            Builder.AddCommentLine(" feature " + featureLabel);
         }
-
-        private static Dictionary<int, string> FlagToFeatureNameDictionary =
-            new Dictionary<int, string>()
-            {
-                {(int)FillTypeFlags.Unknown, "unknown"},
-                {(int)FillTypeFlags.PerimeterShell, "inner perimeter"},
-                {(int)FillTypeFlags.OutermostShell, "outer perimeter"},
-                {(int)FillTypeFlags.SolidInfill, "solid fill"},
-                {(int)FillTypeFlags.SparseInfill, "sparse fill"},
-                {(int)FillTypeFlags.SupportMaterial, "support"},
-                {(int)FillTypeFlags.BridgeSupport, "bridge"},
-                {(int)FillTypeFlags.OpenShellCurve, "open mesh"},
-                {(int)FillTypeFlags.InteriorShell, "interior shell"},
-            };
 
         void AppendDimensions(Vector2d dimensions)
         {
@@ -226,7 +205,7 @@ namespace gs
                 dimensions.x = Settings.Machine.NozzleDiamMM;
             if (dimensions.y == GCodeUtil.UnspecifiedDimensions.y)
                 dimensions.y = Settings.LayerHeightMM;
-            Assembler.AppendComment("tool H" + dimensions.y + " W" + dimensions.x);
+            Assembler.AppendComment(" tool H" + dimensions.y + " W" + dimensions.x);
         }
 
         public virtual void AppendComment(string comment)

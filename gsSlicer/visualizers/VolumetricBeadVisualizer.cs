@@ -272,7 +272,7 @@ namespace gs
             var pointCount = startPointCount + toolpathIndex;
             var point = toolpath[toolpathIndex].Position;
             var dimensions = toolpath[toolpathIndex].Dimensions;
-            var fillType = (FillTypeFlags)(toolpath[toolpathIndex]?.Source ?? FillTypeFlags.Unknown);
+            var fillType = (FillTypeFlags)(toolpath[toolpathIndex].Source ?? FillTypeFlags.Unknown);
             var feedRate = toolpath[toolpathIndex].FeedRate;
             ToolpathPreviewJoint joint = new ToolpathPreviewJoint();
 
@@ -470,7 +470,7 @@ namespace gs
                 if (indexOfFillType >= 0)
                 {
                     var featureName = line.comment.Substring(indexOfFillType + 8).Trim();
-                    fillType = SingleMaterialFFFCompiler.FlagFromFeatureName(featureName);
+                    fillType = FeatureTypeLabelerFFF.Value.FillTypeFlagFromFeatureLabel(featureName);
                 }
             }
         }

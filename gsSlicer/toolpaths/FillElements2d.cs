@@ -21,15 +21,20 @@ namespace gs
 		SparseInfill = 1<<9,
 
         SupportMaterial = 1<<10,
-		BridgeSupport = 1<<11
+		BridgeSupport = 1<<11,
+		Skirt = 1<<12,
+		Priming = 1<<13
+
+		// Warning: default enum max size is 32 bits; cannot add flags past 1 << 31
+		// If more are needed, may need to change defintion to the following:
+		//    enum FillTypeFlags : Int64 
 	}
 
 
-
-    /// <summary>
-    /// things that are common to FillPolyline2d and FillPolygon2d
-    /// </summary>
-    public interface FillCurve2d
+	/// <summary>
+	/// things that are common to FillPolyline2d and FillPolygon2d
+	/// </summary>
+	public interface FillCurve2d
     {
         bool HasTypeFlag(FillTypeFlags f);
 
