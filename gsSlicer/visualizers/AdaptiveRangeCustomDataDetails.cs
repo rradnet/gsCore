@@ -1,13 +1,12 @@
 ﻿using g3;
 using System;
-using gs.interfaces;
 
 
 namespace gs
 {
     public class AdaptiveRangeCustomDataDetails : CustomDataDetails
     {
-        private Interval1d interval = Interval1d.Empty;
+        protected Interval1d interval = Interval1d.Empty;
         public override float RangeMin { get => (float)interval.a; }
         public override float RangeMax { get => (float)interval.b; }
 

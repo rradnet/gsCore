@@ -10,10 +10,10 @@ namespace gs
         public virtual float RangeMax { get; protected set; }
 
         private readonly Func<string> labelF;
-        public string Label { get => labelF(); }
+        public virtual string Label { get => labelF(); }
 
         private Func<float, string> colorScaleLabelerF;
-        public string FormatColorScaleLabel(float value)
+        public virtual string FormatColorScaleLabel(float value)
         {
             return colorScaleLabelerF(value);
         }

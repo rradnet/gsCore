@@ -51,7 +51,12 @@ namespace gs
                 (value) => $"{value:F0} mm/min");
         public IVisualizerCustomDataDetails CustomDataDetails1 => customDataFeedRate;
 
-        public IVisualizerCustomDataDetails CustomDataDetails2 => null;
+        private NormalizedAdaptiveRangeCustomDataDetails customDataCompletion =
+            new NormalizedAdaptiveRangeCustomDataDetails(
+                () => "Completion",
+                (value) => $"{value:P0}");
+        public IVisualizerCustomDataDetails CustomDataDetails2 => customDataCompletion;
+
         public IVisualizerCustomDataDetails CustomDataDetails3 => null;
         public IVisualizerCustomDataDetails CustomDataDetails4 => null;
         public IVisualizerCustomDataDetails CustomDataDetails5 => null;
@@ -105,6 +110,7 @@ namespace gs
                 Dimensions = dimensions,
                 Source = fillType,
             };
+
 
             if (line.type == GCodeLine.LType.GCode)
             {
@@ -367,10 +373,11 @@ namespace gs
 
             vertices.Add(new ToolpathPreviewVertex(vertex,
                 (int)fillType, layerIndex, color, brightness,
-                (float)dimensions.x, (float)feedrate));
+                (float)dimensions.x, (float)feedrate, pointCount));
 
             // Update adaptive ranges for custom data
             customDataFeedRate.ObserveValue((float)feedrate);
+            customDataCompletion.ObserveValue(pointCount);
 
             return vertices.Count - 1;
         }
