@@ -13,28 +13,33 @@ namespace gsCore.FunctionalTests
         [TestMethod]
         public void Frustum_RepRap()
         {
-            // arrange
+            // Arrange
             var print = new PrintGenComparator("Frustum.RepRap", new EngineFFF());
-            print.settings = new RepRapSettings { GenerateSupport = false };
+            print.settings = new RepRapSettings { 
+                GenerateSupport = false,
+            };
 
-            // act
+            // Act
             print.GenerateFile();
 
-            // assert
+            // Assert
             print.CompareResults();
         }
 
         [TestMethod]
         public void Cube_Prusa()
         {
-            // arrange
+            // Arrange
             var print = new PrintGenComparator("Cube.Prusa", new EngineFFF());
-            print.settings = new PrusaSettings { GenerateSupport = false };
-
-            // act
+            print.settings = new PrusaSettings { 
+                GenerateSupport = false,
+                LayerHeightMM = 0.3,
+            };
+            
+            // Act
             print.GenerateFile();
 
-            // assert
+            // Assert
             print.CompareResults();
         }
     }
