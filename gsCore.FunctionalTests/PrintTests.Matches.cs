@@ -1,5 +1,7 @@
 ﻿using gs.engines;
 using gs.info;
+using gs.interfaces;
+using gsCore.FunctionalTests.Utility;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace gsCore.FunctionalTests
@@ -8,14 +10,23 @@ namespace gsCore.FunctionalTests
     [TestClass]
     public class FFF_PrintTests_Matches
     {
+        protected PrintTestRunner TestRunnerFactory(string caseName, IProfile settings)
+        {
+            var engine = new EngineFFF();
+            var resultGenerator = new ResultGenerator(engine, caseName, new ConsoleLogger());
+            var print = new PrintTestRunner(caseName, resultGenerator);
+            resultGenerator.Settings = settings;
+            return print;
+        }
+
         [TestMethod]
         public void Frustum_RepRap()
         {
             // Arrange
-            var print = new PrintGenComparator("Frustum.RepRap", new EngineFFF());
-            print.settings = new RepRapSettings {
+            var print = TestRunnerFactory("Frustum.RepRap", new RepRapSettings
+            {
                 GenerateSupport = false,
-            };
+            });
 
             // Act
             print.GenerateFile();
@@ -28,11 +39,10 @@ namespace gsCore.FunctionalTests
         public void Cube_Prusa()
         {
             // Arrange
-            var print = new PrintGenComparator("Cube.Prusa", new EngineFFF());
-            print.settings = new PrusaSettings {
+            var print = TestRunnerFactory("Cube.Prusa", new PrusaSettings {
                 GenerateSupport = false,
                 LayerHeightMM = 0.3,
-            };
+            });
 
             // Act
             print.GenerateFile();
@@ -45,11 +55,10 @@ namespace gsCore.FunctionalTests
         public void Sphere_Flashforge()
         {
             // Arrange
-            var print = new PrintGenComparator("Sphere.Flashforge", new EngineFFF());
-            print.settings = new FlashforgeSettings
+            var print = TestRunnerFactory("Sphere.Flashforge", new FlashforgeSettings
             {
-                GenerateSupport = true,
-            };
+                GenerateSupport = false,
+            });
 
             // Act
             print.GenerateFile();
@@ -62,11 +71,10 @@ namespace gsCore.FunctionalTests
         public void Bunny_Printrbot()
         {
             // Arrange
-            var print = new PrintGenComparator("Bunny.Printrbot", new EngineFFF());
-            print.settings = new PrintrbotSettings
+            var print = TestRunnerFactory("Bunny.Printrbot", new PrintrbotSettings
             {
                 GenerateSupport = false,
-            };
+            });
 
             // Act
             print.GenerateFile();
@@ -79,11 +87,10 @@ namespace gsCore.FunctionalTests
         public void Benchy_Monoprice()
         {
             // Arrange
-            var print = new PrintGenComparator("Benchy.Monoprice", new EngineFFF());
-            print.settings = new MonopriceSettings
+            var print = TestRunnerFactory("Benchy.Monoprice", new MonopriceSettings
             {
                 GenerateSupport = false,
-            };
+            });
 
             // Act
             print.GenerateFile();
@@ -96,14 +103,13 @@ namespace gsCore.FunctionalTests
         public void Robot_Makerbot()
         {
             // Arrange
-            var print = new PrintGenComparator("Robot.Makerbot", new EngineFFF());
-            print.settings = new MakerbotSettings
+            var print = TestRunnerFactory("Robot.Makerbot", new MakerbotSettings
             {
                 GenerateSupport = false,
                 Shells = 1,
                 FloorLayers = 3,
                 RoofLayers = 3,
-            };
+            });
 
             // Act
             print.GenerateFile();

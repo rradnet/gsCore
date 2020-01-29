@@ -1,10 +1,8 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.IO;
 using System.Reflection;
-using System.Text;
 
-namespace gsCore.FunctionalTests
+namespace gsCore.FunctionalTests.Utility
 {
     public static class TestUtilities
     {
@@ -39,7 +37,7 @@ namespace gsCore.FunctionalTests
 
         public static string GetExpectedFilePath(DirectoryInfo directory)
         {
-            return Path.Combine(directory.FullName, directory.Name + ".Result.gcode");
+            return Path.Combine(directory.FullName, directory.Name + ".Expected.gcode");
         }
 
     }

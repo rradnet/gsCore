@@ -7,11 +7,11 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 
-namespace gsCore.FunctionalTests
+namespace gsCore.FunctionalTests.Utility
 {
-
-    public class PrintGenComparator
+    public class PrintTestRunner
     {
+        private readonly IResultGenerator resultGenerator;
 
         private static readonly JsonSerializerSettings jsonSerializerSettings = new JsonSerializerSettings {
             MissingMemberHandling = MissingMemberHandling.Error,
@@ -28,50 +28,18 @@ namespace gsCore.FunctionalTests
         public double allowedExtrusionTimeError = 1e-4;
 
         const double maximumDifferenceToSkipErrorFraction = 1;
-        protected DirectoryInfo directory;
-        public SingleMaterialFFFSettings settings;
-        public IEngine engine;
 
-        public PrintGenComparator(string name, IEngine engine)
+        protected DirectoryInfo directory;
+
+        public PrintTestRunner(string name, IResultGenerator resultGenerator)
         {
+            this.resultGenerator = resultGenerator;
+
             directory = TestUtilities.GetTestDataDirectory(name);
             meshFilePath = TestUtilities.GetMeshFilePath(directory);
 
             resultFilePath = TestUtilities.GetResultFilePath(directory);
             expectedFilePath = TestUtilities.GetExpectedFilePath(directory);
-
-            this.engine = engine;
-        }
-
-        public void LoadSettingsFromFiles()
-        {
-            Assert.IsNotNull(settings);
-            string[] settingsFilePaths;
-            var settingsFiles = directory.GetFiles("*.json");
-            settingsFilePaths = new string[settingsFiles.Length];
-            for (int i = settingsFiles.Length - 1; i >= 0; i--)
-                settingsFilePaths[i] = settingsFiles[i].FullName;
-
-            foreach (string s in settingsFilePaths) {
-                try {
-                    Console.WriteLine($"Loading file {Path.GetFullPath(s)}");
-                    string settingsText = File.ReadAllText(s);
-                    JsonConvert.PopulateObject(settingsText, settings, jsonSerializerSettings);
-                } catch (Exception e) {
-                    Console.WriteLine("Error processing settings file: ");
-                    Console.WriteLine(Path.GetFullPath(s));
-                    Console.WriteLine(e.Message);
-                    return;
-                }
-            }
-        }
-
-        public void SaveGCode(string path, GCodeFile file)
-        {
-            using (StreamWriter w = new StreamWriter(path)) {
-                StandardGCodeWriter writer = new StandardGCodeWriter();
-                writer.WriteFile(file, w);
-            }
         }
 
         public GCodeFile LoadGCode(string path) 
@@ -116,7 +84,7 @@ namespace gsCore.FunctionalTests
                     "\r\nExtrusion Time:\t" + extrusionTime;
             }
 
-            public void AssertMatches(PrintGenComparator test, SubLayerDetails other, FillTypeFlags fillType, int layerNumber)
+            public void AssertMatches(PrintTestRunner test, SubLayerDetails other, FillTypeFlags fillType, int layerNumber)
             {
                 AssertErrorFraction(other.boundingBox.Max.x, boundingBox.Max.x, test.allowedBoundingBoxError, layerNumber, fillType, "bounding box maximum x");
                 AssertErrorFraction(other.boundingBox.Max.y, boundingBox.Max.y, test.allowedBoundingBoxError, layerNumber, fillType, "bounding box maximum y");
@@ -130,20 +98,6 @@ namespace gsCore.FunctionalTests
             }
         }
 
-        public void GenerateFile()
-        {
-            Assert.IsNotNull(settings);
-            Assert.IsNotNull(engine);
-
-            var generator = engine.Generator;
-
-            var parts = new[]{
-                new Tuple<DMesh3, object>(StandardMeshReader.ReadMesh(meshFilePath), generator.AcceptsPartSettings ? settings : null)
-            };
-
-            GCodeFile resultFile = engine.Generator.GenerateGCode(parts, settings, out var generationReport, null, (s) => Console.WriteLine(s));
-            SaveGCode(resultFilePath, resultFile); //writing and reading the gcode file from the hard drive can cause precision loss. To avoid false assertion fails, it may be desireable to give both the same treatment.
-        }
 
         public void CompareResults()
         {
@@ -245,6 +199,11 @@ namespace gsCore.FunctionalTests
             if (currentLayer != null)
                 layers.Add(currentLayer);
             return layers;
+        }
+
+        public void GenerateFile()
+        {
+            resultGenerator.GenerateResultFile();
         }
     }
 }

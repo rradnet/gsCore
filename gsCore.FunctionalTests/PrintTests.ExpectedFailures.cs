@@ -5,6 +5,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
 using System.IO;
 using System.Reflection;
+using gsCore.FunctionalTests.Utility;
 
 namespace gsCore.FunctionalTests
 {
@@ -27,13 +28,11 @@ namespace gsCore.FunctionalTests
                 new Tuple<DMesh3, object>(StandardMeshReader.ReadMesh(meshFilePath), null)
             };
 
-            GCodeFile expectedResult = generator.GenerateGCode(parts, new GenericRepRapSettings(), out var generationReport, null, (s) => Console.WriteLine(s));
+            var expectedResult = generator.GenerateGCode(parts, new GenericRepRapSettings(), out var generationReport, null, Console.WriteLine);
 
-            using (StreamWriter w = new StreamWriter(expectedFilePath))
-            {
-                StandardGCodeWriter writer = new StandardGCodeWriter();
-                writer.WriteFile(expectedResult, w);
-            }
+            using var w = new StreamWriter(expectedFilePath);
+            var writer = new StandardGCodeWriter();
+            writer.WriteFile(expectedResult, w);
         }
 
         [TestMethod]
@@ -63,10 +62,12 @@ namespace gsCore.FunctionalTests
         public void ExpectFailure(GenericRepRapSettings settings)
         {
             // Arrange
-            var print = new PrintGenComparator(CaseName, new EngineFFF());
+            var engine = new EngineFFF();
+            var resultGenerator = new ResultGenerator(engine, CaseName, new ConsoleLogger());
+            var print = new PrintTestRunner(CaseName, resultGenerator);
 
             // Use reflection to set a property on the settings object
-            print.settings = settings;
+            resultGenerator.Settings = settings;
 
             // Act
             print.GenerateFile();
