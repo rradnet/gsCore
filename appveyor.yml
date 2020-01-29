@@ -16,6 +16,6 @@ build:
 
 test_script:
 - cmd: >-
-   dotnet test --logger:Appveyor smPro\smPro.UnitTests\smPro.UnitTests.csproj -c Release
+   dotnet test --logger:Appveyor gsCore.UnitTests\gsCore.UnitTests.csproj -c Release
 - cmd: >-
-   dotnet test --logger:Appveyor smPro\smPro.FunctionalTests\smPro.FunctionalTests.csproj -c Release
+   dotnet test --logger:Appveyor gsCore.FunctionalTests\gsCore.FunctionalTests.csproj -c Release
