@@ -5,10 +5,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
-using System.ComponentModel.Composition;
-using System.ComponentModel.Composition.Hosting;
 using System.IO;
-using System.Reflection;
 
 namespace gsCore.FunctionalTests
 {
@@ -37,24 +34,11 @@ namespace gsCore.FunctionalTests
 
         public PrintGenComparator(string name, IEngine engine)
         {
-            var searchDirectory = new DirectoryInfo(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location));
-            do {
-                foreach (var subdirectory in searchDirectory.GetDirectories()) {
-                    if (subdirectory.Name == "TestData") {
-                        directory = new DirectoryInfo(Path.Combine(subdirectory.FullName, name));
-                        break;
-                    }
-                }
-            } while ((searchDirectory = searchDirectory.Parent) != null && directory == null);
-            if (directory == null)
-                throw new FileNotFoundException("No TestData directory found.");
+            directory = TestUtilities.GetTestDataDirectory(name);
+            meshFilePath = TestUtilities.GetMeshFilePath(directory);
 
-            var meshFiles = directory.GetFiles("*.stl");
-            if (meshFiles.Length != 1) throw new ArgumentException("Expected single STL file in directory");
-            meshFilePath = meshFiles[0].FullName;
-
-            resultFilePath = Path.Combine(directory.FullName, directory.Name + ".Result.gcode");
-            expectedFilePath = Path.Combine(directory.FullName, directory.Name + ".Expected.gcode");
+            resultFilePath = TestUtilities.GetResultFilePath(directory);
+            expectedFilePath = TestUtilities.GetExpectedFilePath(directory);
 
             this.engine = engine;
         }

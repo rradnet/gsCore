@@ -203,15 +203,15 @@ namespace gs
         /*
          * Shells
          */
-        public int Shells = 2;
+        public int Shells { get; set; } = 2;
         public int InteriorSolidRegionShells = 0;       // how many shells to add around interior solid regions (eg roof/floor)
 		public bool OuterShellLast = false;				// do outer shell last (better quality but worse precision)
 
 		/*
 		 * Roof/Floors
 		 */
-		public int RoofLayers = 2;
-		public int FloorLayers = 2;
+		public int RoofLayers { get; set; } = 2;
+		public int FloorLayers { get; set; } = 2;
 
         /*
          *  Solid fill settings

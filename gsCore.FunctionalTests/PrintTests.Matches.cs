@@ -1,21 +1,19 @@
-﻿using gs;
-using gs.engines;
+﻿using gs.engines;
 using gs.info;
-using gs.interfaces;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace gsCore.FunctionalTests
 {
 
     [TestClass]
-    public class gsCorePrintTests
+    public class FFF_PrintTests_Matches
     {
         [TestMethod]
         public void Frustum_RepRap()
         {
             // Arrange
             var print = new PrintGenComparator("Frustum.RepRap", new EngineFFF());
-            print.settings = new RepRapSettings { 
+            print.settings = new RepRapSettings {
                 GenerateSupport = false,
             };
 
@@ -31,11 +29,11 @@ namespace gsCore.FunctionalTests
         {
             // Arrange
             var print = new PrintGenComparator("Cube.Prusa", new EngineFFF());
-            print.settings = new PrusaSettings { 
+            print.settings = new PrusaSettings {
                 GenerateSupport = false,
                 LayerHeightMM = 0.3,
             };
-            
+
             // Act
             print.GenerateFile();
 
