@@ -2,6 +2,6 @@
 {
     public interface IResultGenerator
     {
-        public void GenerateResultFile();
+        public void GenerateResultFile(string meshFilePath, string outputFilePath);
     }
 }

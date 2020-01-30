@@ -13,8 +13,9 @@ namespace gsCore.FunctionalTests
         protected PrintTestRunner TestRunnerFactory(string caseName, IProfile settings)
         {
             var engine = new EngineFFF();
-            var resultGenerator = new ResultGenerator(engine, caseName, new ConsoleLogger());
-            var print = new PrintTestRunner(caseName, resultGenerator);
+            var resultGenerator = new ResultGenerator(engine, new ConsoleLogger());
+            var resultComparer = new ResultComparer();
+            var print = new PrintTestRunner(caseName, resultGenerator, resultComparer);
             resultGenerator.Settings = settings;
             return print;
         }
