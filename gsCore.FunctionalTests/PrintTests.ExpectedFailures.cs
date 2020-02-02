@@ -4,6 +4,7 @@ using gs.engines;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
 using System.IO;
+using gsCore.FunctionalTests.Models;
 using gsCore.FunctionalTests.Utility;
 
 namespace gsCore.FunctionalTests
@@ -37,28 +38,28 @@ namespace gsCore.FunctionalTests
         [TestMethod]
         public void WrongLayerHeight()
         {
-            ExpectFailure(new GenericRepRapSettings() { LayerHeightMM = 0.3 });
+            ExpectFailure<LayerCountMismatch>(new GenericRepRapSettings() { LayerHeightMM = 0.3 });
         }
 
         [TestMethod]
         public void WrongShells()
         {
-            ExpectFailure(new GenericRepRapSettings() { Shells = 1 });
+            ExpectFailure<FeatureCumulativeExtrusionMismatch>(new GenericRepRapSettings() { Shells = 3 });
         }
 
         [TestMethod]
         public void WrongFloorLayers()
         {
-            ExpectFailure(new GenericRepRapSettings() { FloorLayers = 0 });
+            ExpectFailure<MissingFeature>(new GenericRepRapSettings() { FloorLayers = 0 });
         }
 
         [TestMethod]
         public void WrongRoofLayers()
         {
-            ExpectFailure(new GenericRepRapSettings() { FloorLayers = 3 });
+            ExpectFailure<MissingFeature>(new GenericRepRapSettings() { FloorLayers = 3 });
         }
 
-        public void ExpectFailure(GenericRepRapSettings settings)
+        public void ExpectFailure<ExceptionType>(GenericRepRapSettings settings) where ExceptionType : Exception
         {
             // Arrange
             var engine = new EngineFFF();
@@ -73,7 +74,7 @@ namespace gsCore.FunctionalTests
             print.GenerateFile();
 
             // Assert
-            Assert.ThrowsException<AssertFailedException>(() =>
+            Assert.ThrowsException<ExceptionType>(() =>
             {
                 print.CompareResults();
             });
