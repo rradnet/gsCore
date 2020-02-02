@@ -58,7 +58,7 @@ namespace gsCore.FunctionalTests
             // Arrange
             var print = TestRunnerFactory("Sphere.Flashforge", new FlashforgeSettings
             {
-                GenerateSupport = false,
+                GenerateSupport = true,
             });
 
             // Act

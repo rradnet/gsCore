@@ -49,7 +49,7 @@ namespace gsCore.FunctionalTests
         [TestMethod]
         public void WrongFloorLayers()
         {
-            ExpectFailure(new GenericRepRapSettings() { FloorLayers = 1 });
+            ExpectFailure(new GenericRepRapSettings() { FloorLayers = 0 });
         }
 
         [TestMethod]

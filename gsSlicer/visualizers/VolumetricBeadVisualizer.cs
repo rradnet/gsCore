@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using gs.interfaces;
+using gs.utility;
 
 
 namespace gs
@@ -102,7 +103,7 @@ namespace gs
 
             ExtractPositionFeedrateAndExtrusion(line, ref position, ref feedrate, ref extrusion);
             ExtractDimensions(line, ref dimensions);
-            ExtractFillType(line, ref fillType);
+            GCodeLineUtil.ExtractFillType(line, ref fillType);
 
             PrintVertex vertex = new PrintVertex(position, feedrate, dimensions)
             {
@@ -458,19 +459,6 @@ namespace gs
                     i = word.IndexOf('H');
                     if (i >= 0)
                         dimensions.y = double.Parse(word.Substring(i + 1));
-                }
-            }
-        }
-
-        protected virtual void ExtractFillType(GCodeLine line, ref FillTypeFlags fillType)
-        {
-            if (line.comment != null)
-            {
-                int indexOfFillType = line.comment.IndexOf("feature");
-                if (indexOfFillType >= 0)
-                {
-                    var featureName = line.comment.Substring(indexOfFillType + 8).Trim();
-                    fillType = FeatureTypeLabelerFFF.Value.FillTypeFlagFromFeatureLabel(featureName);
                 }
             }
         }

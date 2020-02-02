@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using g3;
 using gs;
+using gs.utility;
 using gsCore.FunctionalTests.Models;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
@@ -25,17 +26,17 @@ namespace gsCore.FunctionalTests.Utility
 
         private const double maximumDifferenceToSkipErrorFraction = 1;
 
-        public void AssertMatches(SubLayerDetails layerA, SubLayerDetails layerB, FillTypeFlags fillType, int layerNumber)
+        public void AssertMatches(FeatureInfo layerA, FeatureInfo layerB, FillTypeFlags fillType, int layerNumber)
         {
-            AssertErrorFraction(layerA.boundingBox.Max.x, layerB.boundingBox.Max.x, allowedBoundingBoxError, layerNumber, fillType, "bounding box maximum x");
-            AssertErrorFraction(layerA.boundingBox.Max.y, layerB.boundingBox.Max.y, allowedBoundingBoxError, layerNumber, fillType, "bounding box maximum y");
-            AssertErrorFraction(layerA.boundingBox.Min.x, layerB.boundingBox.Min.x, allowedBoundingBoxError, layerNumber, fillType, "bounding box minimum x");
-            AssertErrorFraction(layerA.boundingBox.Min.y, layerB.boundingBox.Min.y, allowedBoundingBoxError, layerNumber, fillType, "bounding box minimum y");
+            AssertErrorFraction(layerA.BoundingBox.Max.x, layerB.BoundingBox.Max.x, allowedBoundingBoxError, layerNumber, fillType, "bounding box maximum x");
+            AssertErrorFraction(layerA.BoundingBox.Max.y, layerB.BoundingBox.Max.y, allowedBoundingBoxError, layerNumber, fillType, "bounding box maximum y");
+            AssertErrorFraction(layerA.BoundingBox.Min.x, layerB.BoundingBox.Min.x, allowedBoundingBoxError, layerNumber, fillType, "bounding box minimum x");
+            AssertErrorFraction(layerA.BoundingBox.Min.y, layerB.BoundingBox.Min.y, allowedBoundingBoxError, layerNumber, fillType, "bounding box minimum y");
             AssertErrorFraction(layerA.CenterOfMass.x, layerB.CenterOfMass.x, allowedCenterOfMassError, layerNumber, fillType, "center of mass x");
             AssertErrorFraction(layerA.CenterOfMass.y, layerB.CenterOfMass.y, allowedCenterOfMassError, layerNumber, fillType, "center of mass y");
-            AssertErrorFraction(layerA.extrusionAmount, layerB.extrusionAmount, allowedExtrusionAmountError, layerNumber, fillType, "extrusion amount");
-            AssertErrorFraction(layerA.extrusionDistance, layerB.extrusionDistance, allowedExtrusionDistanceError, layerNumber, fillType, "extrusion distance");
-            AssertErrorFraction(layerA.extrusionTime, layerB.extrusionTime, allowedExtrusionTimeError, layerNumber, fillType, "extrusion time");
+            AssertErrorFraction(layerA.ExtrusionAmount, layerB.ExtrusionAmount, allowedExtrusionAmountError, layerNumber, fillType, "extrusion amount");
+            AssertErrorFraction(layerA.ExtrusionDistance, layerB.ExtrusionDistance, allowedExtrusionDistanceError, layerNumber, fillType, "extrusion distance");
+            AssertErrorFraction(layerA.ExtrusionTime, layerB.ExtrusionTime, allowedExtrusionTimeError, layerNumber, fillType, "extrusion time");
         }
 
         private static void AssertErrorFraction(double result, double expected, double maximumError, int layerNumber, FillTypeFlags fillType, string name = "value")
@@ -49,20 +50,20 @@ namespace gsCore.FunctionalTests.Utility
 
         public void CompareFiles(string gcodeFilePathExpected, string gcodeFilePathResult)
         {
-            var resultLayersDetails = GetLayersDetails(LoadGCode(gcodeFilePathExpected));
-            var expectedLayersDetails = GetLayersDetails(LoadGCode(gcodeFilePathResult));
+            var resultLayersDetails = GetLayerFeatureInfo(LoadGCode(gcodeFilePathExpected));
+            var expectedLayersDetails = GetLayerFeatureInfo(LoadGCode(gcodeFilePathResult));
 
             Assert.AreEqual(resultLayersDetails.Count, expectedLayersDetails.Count, "The expected file has " + expectedLayersDetails.Count + " layers, while the result file has " + resultLayersDetails.Count + ".");
 
             for (int layerNumber = 0; layerNumber < resultLayersDetails.Count; layerNumber++)
             {
-                Dictionary<FillTypeFlags, SubLayerDetails> resultLayerDetails = resultLayersDetails[layerNumber];
-                Dictionary<FillTypeFlags, SubLayerDetails> expectedLayerDetails = expectedLayersDetails[layerNumber];
+                Dictionary<FillTypeFlags, FeatureInfo> resultLayerDetails = resultLayersDetails[layerNumber];
+                Dictionary<FillTypeFlags, FeatureInfo> expectedLayerDetails = expectedLayersDetails[layerNumber];
 
                 foreach (FillTypeFlags fillType in resultLayerDetails.Keys)
                 {
 
-                    if (expectedLayerDetails.TryGetValue(fillType, out SubLayerDetails expectedSubLayer))
+                    if (expectedLayerDetails.TryGetValue(fillType, out FeatureInfo expectedSubLayer))
                     {
                         AssertMatches(expectedSubLayer, resultLayerDetails[fillType], fillType, layerNumber);
                     }
@@ -74,16 +75,20 @@ namespace gsCore.FunctionalTests.Utility
             }
         }
 
-        private List<Dictionary<FillTypeFlags, SubLayerDetails>> GetLayersDetails(GCodeFile file)
+        private static List<Dictionary<FillTypeFlags, FeatureInfo>> GetLayerFeatureInfo(GCodeFile file)
         {
 
-            var layers = new List<Dictionary<FillTypeFlags, SubLayerDetails>>();
-            Dictionary<FillTypeFlags, SubLayerDetails> currentLayer = null;
+            var layers = new List<Dictionary<FillTypeFlags, FeatureInfo>>();
+            Dictionary<FillTypeFlags, FeatureInfo> currentLayer = null;
 
             double lastExtrusionAmount = 0;
             double lastX = 0;
             double lastY = 0;
             double feedrate = 0;
+
+            FillTypeFlags fillType = FillTypeFlags.Unknown;
+
+            FeatureInfo subLayerDetails = new FeatureInfo();
 
             foreach (var line in file.AllLines())
             {
@@ -92,56 +97,62 @@ namespace gsCore.FunctionalTests.Utility
                 {
                     if (currentLayer != null)
                         layers.Add(currentLayer);
-                    currentLayer = new Dictionary<FillTypeFlags, SubLayerDetails>();
+                    currentLayer = new Dictionary<FillTypeFlags, FeatureInfo>();
                     continue;
                 }
 
-                if (line.type != GCodeLine.LType.GCode || currentLayer == null)
-                    continue;
-
-                double f = GCodeUtil.UnspecifiedValue;
-                if (GCodeUtil.TryFindParamNum(line.parameters, "F", ref f))
-                    feedrate = f;
-
-                double x = GCodeUtil.UnspecifiedValue, y = GCodeUtil.UnspecifiedValue;
-                bool found_x = GCodeUtil.TryFindParamNum(line.parameters, "X", ref x);
-                bool found_y = GCodeUtil.TryFindParamNum(line.parameters, "Y", ref y);
-
-                if (!found_x || !found_y)
-                    continue;
-
-                double extrusionAmount = GCodeUtil.UnspecifiedValue;
-                if (GCodeUtil.TryFindParamNum(line.parameters, "E", ref extrusionAmount) && extrusionAmount >= lastExtrusionAmount)
+                switch (line.type)
                 {
+                    case GCodeLine.LType.Comment:
+                        FillTypeFlags lineFillType = FillTypeFlags.Unknown;
+                        GCodeLineUtil.ExtractFillType(line, ref lineFillType);
 
-                    int indexOfFillType = line.comment?.IndexOf("Fill Type") ?? -1;
-                    if (indexOfFillType >= 0 && int.TryParse(line.comment?.Substring(indexOfFillType + 9), out int fillTypeInt))
-                    {
-
-                        FillTypeFlags fillType = (FillTypeFlags)fillTypeInt;
-
-                        if (!currentLayer.TryGetValue(fillType, out SubLayerDetails subLayerDetails))
+                        if (fillType != lineFillType)
                         {
-                            subLayerDetails = new SubLayerDetails();
-                            currentLayer.Add(fillType, subLayerDetails);
+                            if (!currentLayer.TryGetValue(fillType, out subLayerDetails))
+                            {
+                                subLayerDetails = new FeatureInfo();
+                                currentLayer.Add(fillType, subLayerDetails);
+                            }
                         }
+                        break;
+                    case GCodeLine.LType.GCode:
+                        double x = GCodeUtil.UnspecifiedValue;
+                        double y = GCodeUtil.UnspecifiedValue;
+
+                        bool found_x = GCodeUtil.TryFindParamNum(line.parameters, "X", ref x);
+                        bool found_y = GCodeUtil.TryFindParamNum(line.parameters, "Y", ref y);
+
+                        if (!found_x || !found_y)
+                            break;
 
                         double averageX = (lastX + x) * 0.5;
                         double averageY = (lastY + y) * 0.5;
                         double distance = Math.Sqrt((lastX - x) * (lastX - x) + (lastY - y) * (lastY - y));
 
-                        subLayerDetails.extrusionAmount += extrusionAmount - lastExtrusionAmount;
-                        subLayerDetails.extrusionDistance += distance;
-                        subLayerDetails.boundingBox.Contain(new Vector2d(x, y));
-                        subLayerDetails.unscaledCenterOfMass += new Vector2d(averageX, averageY) * (extrusionAmount - lastExtrusionAmount);
-                        subLayerDetails.extrusionTime += distance / feedrate;
 
+                        double extrusionAmount = GCodeUtil.UnspecifiedValue;
+                        if (GCodeUtil.TryFindParamNum(line.parameters, "E", ref extrusionAmount) &&
+                            extrusionAmount >= lastExtrusionAmount)
+                            ;
+
+                        double f = GCodeUtil.UnspecifiedValue;
+                        if (GCodeUtil.TryFindParamNum(line.parameters, "F", ref f))
+                            feedrate = f;
+
+                        subLayerDetails.ExtrusionAmount += extrusionAmount - lastExtrusionAmount;
+                        subLayerDetails.ExtrusionDistance += distance;
+                        subLayerDetails.BoundingBox.Contain(new Vector2d(x, y));
+                        subLayerDetails.UnscaledCenterOfMass += new Vector2d(averageX, averageY) * (extrusionAmount - lastExtrusionAmount);
+                        subLayerDetails.ExtrusionTime += distance / feedrate;
+
+
+                        lastX = x;
+                        lastY = y;
                         lastExtrusionAmount = extrusionAmount;
-                    }
-                }
 
-                lastX = x;
-                lastY = y;
+                        break;
+                }
             }
 
             if (currentLayer != null)
