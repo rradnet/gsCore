@@ -439,6 +439,15 @@ namespace gs.engines {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Make &amp; Model.
+        /// </summary>
+        internal static string GroupIdentifiers {
+            get {
+                return ResourceManager.GetString("GroupIdentifiers", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Miscellaneous.
         /// </summary>
         internal static string GroupMiscellaneous {
@@ -507,6 +516,15 @@ namespace gs.engines {
         internal static string GroupSupport {
             get {
                 return ResourceManager.GetString("GroupSupport", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Temperature.
+        /// </summary>
+        internal static string GroupTemperature {
+            get {
+                return ResourceManager.GetString("GroupTemperature", resourceCulture);
             }
         }
         

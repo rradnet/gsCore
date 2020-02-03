@@ -243,6 +243,9 @@
   <data name="GroupHidden" xml:space="preserve">
     <value>Hidden</value>
   </data>
+  <data name="GroupIdentifiers" xml:space="preserve">
+    <value>Make &amp; Model</value>
+  </data>
   <data name="GroupMiscellaneous" xml:space="preserve">
     <value>Miscellaneous</value>
   </data>
@@ -266,6 +269,9 @@
   </data>
   <data name="GroupSupport" xml:space="preserve">
     <value>Support</value>
+  </data>
+  <data name="GroupTemperature" xml:space="preserve">
+    <value>Temperature</value>
   </data>
   <data name="HasAutoBedLeveling.Description" xml:space="preserve">
     <value />
