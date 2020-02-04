@@ -1,13 +1,16 @@
-﻿using System;
-using g3;
+﻿using g3;
 using gs;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace gsCore.FunctionalTests.Models
 {
-    public class FeatureInfo
+    public class FeatureInfo : IFeatureInfo
     {
-        public AxisAlignedBox2d BoundingBox { get; set; }
+        public FeatureInfo()
+        {
+        }
+
+        public FillTypeFlags FillType { get; set; }
+        public AxisAlignedBox2d BoundingBox { get; set; } = AxisAlignedBox2d.Empty;
         public Vector2d CenterOfMass { get; set; } = Vector2d.Zero;
         public double Extrusion { get; set; }
         public double Distance { get; set; }
@@ -19,6 +22,11 @@ namespace gsCore.FunctionalTests.Models
         protected double distanceTolerance = 1e-4;
         protected double durationTolerance = 1e-4;
 
+        public FeatureInfo(FillTypeFlags fillType)
+        {
+            FillType = fillType;
+        }
+
         public override string ToString()
         {
             return
@@ -27,6 +35,16 @@ namespace gsCore.FunctionalTests.Models
                 "\r\nExtrusion Amt:\t" + Extrusion +
                 "\r\nExtrusion Dist:\t" + Distance +
                 "\r\nExtrusion Time:\t" + Duration;
+        }
+
+        public void Add(IFeatureInfo other)
+        {
+            Add((FeatureInfo)other);
+        }
+
+        public void AssertEqualsExpected(IFeatureInfo other)
+        {
+            AssertEqualsExpected((FeatureInfo)other);
         }
 
         public void AssertEqualsExpected(FeatureInfo expected)
@@ -45,7 +63,15 @@ namespace gsCore.FunctionalTests.Models
 
             if (!CenterOfMass.EpsilonEqual(expected.CenterOfMass, centerOfMassTolerance))
                 throw new FeatureCenterOfMassMismatch($"Centers of mass aren't equal; expected {expected.CenterOfMass}, got {CenterOfMass}");
+        }
 
+        public void Add(FeatureInfo other)
+        {
+            BoundingBox.Contain(other.BoundingBox);
+            Extrusion += other.Extrusion;
+            Duration += other.Duration;
+            Distance += other.Distance;
+            CenterOfMass += other.CenterOfMass;
         }
     }
 }

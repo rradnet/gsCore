@@ -2,7 +2,7 @@
 {
     public static class GCodeLineUtil
     {
-        public static void ExtractFillType(GCodeLine line, ref FillTypeFlags fillType)
+        public static bool ExtractFillType(GCodeLine line, ref FillTypeFlags fillType)
         {
             if (line.comment != null)
             {
@@ -11,10 +11,10 @@
                 {
                     var featureName = line.comment.Substring(indexOfFillType + 8).Trim();
                     fillType = FeatureTypeLabelerFFF.Value.FillTypeFlagFromFeatureLabel(featureName);
+                    return true;
                 }
             }
+            return false;
         }
-
-
     }
 }

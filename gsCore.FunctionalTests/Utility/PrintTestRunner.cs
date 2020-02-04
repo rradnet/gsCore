@@ -5,30 +5,30 @@ namespace gsCore.FunctionalTests.Utility
     public class PrintTestRunner
     {
         protected readonly IResultGenerator resultGenerator;
-        protected readonly IResultComparer resultComparer;
+        private readonly IResultAnalyzer resultAnalyzer;
 
         protected DirectoryInfo directory;
 
-        public PrintTestRunner(string name, IResultGenerator resultGenerator, IResultComparer resultComparer)
+        public PrintTestRunner(string name, IResultGenerator resultGenerator, IResultAnalyzer resultAnalyzer)
         {
             this.resultGenerator = resultGenerator;
-            this.resultComparer = resultComparer;
+            this.resultAnalyzer = resultAnalyzer;
 
-            directory = Paths.GetTestDataDirectory(name);
+            directory = TestDataPaths.GetTestDataDirectory(name);
         }
 
         public void CompareResults()
         {
-            resultComparer.CompareFiles(
-                Paths.GetExpectedFilePath(directory), 
-                Paths.GetResultFilePath(directory));
+            resultAnalyzer.CompareResults(
+                TestDataPaths.GetExpectedFilePath(directory),
+                TestDataPaths.GetResultFilePath(directory));
         }
 
         public void GenerateFile()
         {
             resultGenerator.GenerateResultFile(
-                Paths.GetMeshFilePath(directory), 
-                Paths.GetResultFilePath(directory));
+                TestDataPaths.GetMeshFilePath(directory), 
+                TestDataPaths.GetResultFilePath(directory));
         }
     }
 }

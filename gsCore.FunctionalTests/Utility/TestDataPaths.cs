@@ -4,7 +4,7 @@ using System.Reflection;
 
 namespace gsCore.FunctionalTests.Utility
 {
-    public static class Paths
+    public static class TestDataPaths
     {
         public static DirectoryInfo GetTestDataDirectory(string name)
         {

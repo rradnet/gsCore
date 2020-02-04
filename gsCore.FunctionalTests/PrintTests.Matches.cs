@@ -1,6 +1,7 @@
 ﻿using gs.engines;
 using gs.info;
 using gs.interfaces;
+using gsCore.FunctionalTests.Models;
 using gsCore.FunctionalTests.Utility;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
@@ -13,11 +14,9 @@ namespace gsCore.FunctionalTests
         protected PrintTestRunner TestRunnerFactory(string caseName, IProfile settings)
         {
             var engine = new EngineFFF();
-            var resultGenerator = new ResultGenerator(engine, new ConsoleLogger());
-            var resultComparer = new ResultComparer();
-            var print = new PrintTestRunner(caseName, resultGenerator, resultComparer);
-            resultGenerator.Settings = settings;
-            return print;
+            var resultGenerator = new ResultGenerator(engine, new ConsoleLogger()) {Settings = settings};
+            var resultAnalyzer = new ResultAnalyzer<FeatureInfo>(new FeatureInfoFactoryFFF());
+            return new PrintTestRunner(caseName, resultGenerator, resultAnalyzer);
         }
 
         [TestMethod]

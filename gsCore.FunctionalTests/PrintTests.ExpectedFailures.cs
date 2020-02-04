@@ -20,9 +20,9 @@ namespace gsCore.FunctionalTests
         {
             var generator = new EngineFFF().Generator;
 
-            var directory = Paths.GetTestDataDirectory(CaseName);
-            var meshFilePath = Paths.GetMeshFilePath(directory);
-            var expectedFilePath = Paths.GetExpectedFilePath(directory);
+            var directory = TestDataPaths.GetTestDataDirectory(CaseName);
+            var meshFilePath = TestDataPaths.GetMeshFilePath(directory);
+            var expectedFilePath = TestDataPaths.GetExpectedFilePath(directory);
 
             var parts = new[]{
                 new Tuple<DMesh3, object>(StandardMeshReader.ReadMesh(meshFilePath), null)
@@ -63,12 +63,9 @@ namespace gsCore.FunctionalTests
         {
             // Arrange
             var engine = new EngineFFF();
-            var resultGenerator = new ResultGenerator(engine, new ConsoleLogger());
-            var resultComparer = new ResultComparer();
-            var print = new PrintTestRunner(CaseName, resultGenerator, resultComparer);
-
-            // Use reflection to set a property on the settings object
-            resultGenerator.Settings = settings;
+            var resultGenerator = new ResultGenerator(engine, new ConsoleLogger()) { Settings = settings };
+            var resultAnalyzer = new ResultAnalyzer<FeatureInfo>(new FeatureInfoFactoryFFF());
+            var print = new PrintTestRunner(CaseName, resultGenerator, resultAnalyzer);
 
             // Act
             print.GenerateFile();
