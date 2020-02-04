@@ -344,7 +344,7 @@ namespace gs
                 layerdata.Scheduler = groupScheduler;
 
                 BeginLayerF(layerdata);
-                Compiler.AppendComment($"layer {layerdata.layer_i} - {layerdata.Slice.LayerZSpan.b}mm");
+                Compiler.AppendComment($"layer {layerdata.layer_i}: {layerdata.Slice.LayerZSpan.b:F3}mm");
 
 				layerdata.ShellFills = get_layer_shells(layer_i);
 
