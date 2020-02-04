@@ -10,8 +10,9 @@ namespace gsCore.FunctionalTests.Models
         }
 
         public FillTypeFlags FillType { get; set; }
-        public AxisAlignedBox2d BoundingBox { get; set; } = AxisAlignedBox2d.Empty;
-        public Vector2d CenterOfMass { get; set; } = Vector2d.Zero;
+
+        public AxisAlignedBox2d BoundingBox = AxisAlignedBox2d.Empty;
+        public Vector2d CenterOfMass { get; set; }
         public double Extrusion { get; set; }
         public double Distance { get; set; }
         public double Duration { get; set; }

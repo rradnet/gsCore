@@ -4,6 +4,7 @@ using gs.engines;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
 using System.IO;
+using System.Reflection.PortableExecutable;
 using gsCore.FunctionalTests.Models;
 using gsCore.FunctionalTests.Utility;
 
@@ -58,6 +59,16 @@ namespace gsCore.FunctionalTests
         {
             ExpectFailure<MissingFeature>(new GenericRepRapSettings() { FloorLayers = 3 });
         }
+
+        [TestMethod]
+        public void WrongLocation()
+        {
+            var settings = new GenericRepRapSettings();
+            settings.Machine.BedOriginFactorX = 0.5;
+            settings.Machine.BedOriginFactorY = 0.5;
+            ExpectFailure<FeatureBoundingBoxMismatch>(settings);
+        }
+
 
         public void ExpectFailure<ExceptionType>(GenericRepRapSettings settings) where ExceptionType : Exception
         {
