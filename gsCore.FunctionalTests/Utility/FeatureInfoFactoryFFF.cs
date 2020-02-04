@@ -2,15 +2,16 @@
 using g3;
 using gs;
 using gsCore.FunctionalTests.Models;
+using Microsoft.VisualStudio.TestPlatform.ObjectModel;
 
 namespace gsCore.FunctionalTests.Utility
 {
     public class FeatureInfoFactoryFFF : IFeatureInfoFactory<FeatureInfo>
     {
-        private double lastExtrusionAmount;
-        private double lastX;
-        private double lastY;
-        private double feedrate;
+
+        private PrintVertex VertexPrevious;
+        private PrintVertex VertexCurrent;
+
         private FeatureInfo currentFeatureInfo;
 
         public FeatureInfo SwitchFeature(FillTypeFlags featureType)
@@ -28,8 +29,8 @@ namespace gsCore.FunctionalTests.Utility
             if (line.type != GCodeLine.LType.GCode)
                 return;
 
-            double x = GCodeUtil.UnspecifiedValue;
-            double y = GCodeUtil.UnspecifiedValue;
+            double x = VertexPrevious.Position.x;
+            double y = VertexPrevious.Position.y;
 
             bool found_x = GCodeUtil.TryFindParamNum(line.parameters, "X", ref x);
             bool found_y = GCodeUtil.TryFindParamNum(line.parameters, "Y", ref y);
@@ -37,37 +38,35 @@ namespace gsCore.FunctionalTests.Utility
             if (!found_x || !found_y)
                 return;
 
-            double averageX = (lastX + x) * 0.5;
-            double averageY = (lastY + y) * 0.5;
-            double distance = Math.Sqrt((lastX - x) * (lastX - x) + (lastY - y) * (lastY - y));
+            VertexCurrent.Position = new Vector3d(x, y, 0);
 
             double f = GCodeUtil.UnspecifiedValue;
             if (GCodeUtil.TryFindParamNum(line.parameters, "F", ref f))
-                feedrate = f;
+                VertexCurrent.FeedRate = f;
 
             double extrusionAmount = GCodeUtil.UnspecifiedValue;
             if (GCodeUtil.TryFindParamNum(line.parameters, "E", ref extrusionAmount) &&
-                extrusionAmount >= lastExtrusionAmount && currentFeatureInfo != null)
+                extrusionAmount >= VertexPrevious.Extrusion.x && currentFeatureInfo != null)
             {
-                currentFeatureInfo.Extrusion += extrusionAmount - lastExtrusionAmount;
+                Vector2d average = new Segment2d(VertexCurrent.Position.xy, VertexPrevious.Position.xy).Center;
+                double distance = VertexCurrent.Position.Distance(VertexPrevious.Position);
+                
+                currentFeatureInfo.Extrusion += extrusionAmount - VertexPrevious.Extrusion.x;
                 currentFeatureInfo.Distance += distance;
-                currentFeatureInfo.BoundingBox.Contain(new Vector2d(x, y));
-                currentFeatureInfo.CenterOfMass += new Vector2d(averageX, averageY) * (extrusionAmount - lastExtrusionAmount);
-                currentFeatureInfo.Duration += distance / feedrate;
+                currentFeatureInfo.BoundingBox.Contain(VertexCurrent.Position.xy);
+                currentFeatureInfo.CenterOfMass += average * currentFeatureInfo.Extrusion;
+                currentFeatureInfo.Duration += distance / VertexCurrent.FeedRate;
 
-                lastExtrusionAmount = extrusionAmount;
+                VertexCurrent.Extrusion = new Vector3d(extrusionAmount, 0, 0);
             }
 
-            lastX = x;
-            lastY = y;
+            VertexPrevious = VertexCurrent;
         }
 
         public void Initialize()
         {
-            lastExtrusionAmount = 0;
-            lastX = 0;
-            lastY = 0;
-            feedrate = 0;
+            VertexCurrent = new PrintVertex();
+            VertexPrevious = new PrintVertex();
             currentFeatureInfo = null;
         }
     }
