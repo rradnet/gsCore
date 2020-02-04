@@ -1,13 +1,15 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <TargetFramework>netcoreapp3.0</TargetFramework>
 
     <IsPackable>false</IsPackable>
 
-    <Authors>Greg Meess</Authors>
+    <ApplicationIcon />
 
-    <Company>Sutro Machine, Inc.</Company>
+    <OutputType>Exe</OutputType>
+
+    <StartupObject />
   </PropertyGroup>
 
   <ItemGroup>
@@ -19,9 +21,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\geometry3Sharp\geometry3Sharp.csproj" />
-    <ProjectReference Include="..\gsGCode\gsGCode.csproj" />
-    <ProjectReference Include="..\gsSlicer\gsSlicer.csproj" />
+    <ProjectReference Include="..\gsEngines\gsEngines.csproj" />
   </ItemGroup>
-
 </Project>
