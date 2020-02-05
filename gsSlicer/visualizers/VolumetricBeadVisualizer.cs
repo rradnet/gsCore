@@ -1,8 +1,8 @@
 ﻿using g3;
+using gs.interfaces;
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using gs.interfaces;
 using gs.utility;
 
 
@@ -10,19 +10,16 @@ namespace gs
 {
     public class VolumetricBeadVisualizer : IVisualizer
     {
-        protected Vector3d position = default;
-        protected double feedrate = default;
-        protected double extrusion = default;
-        protected Vector2d dimensions = default;
-        protected FillTypeFlags fillType = default;
-        protected int layerIndex = default;
-        protected int pointCount = default;
-        protected Vector2d positionShift;
+        protected Vector3d position;
+        protected double feedrate;
+        protected double extrusion;
+        protected Vector2d dimensions = new Vector2d(0.4, 0.2);
+        protected FillTypeFlags fillType;
+        protected int layerIndex;
+        protected int pointCount;
 
-        protected List<PrintVertex> toolpath = null;
-        protected PrintVertex lastVertex = default;
-
-        public SingleMaterialFFFSettings settings = null;
+        protected List<PrintVertex> toolpath;
+        protected PrintVertex lastVertex;
 
         public virtual event Action<ToolpathPreviewVertex[], int[], int> OnMeshGenerated;
         public virtual event Action<List<Vector3d>, int> OnLineGenerated;
@@ -41,19 +38,19 @@ namespace gs
             {(int)FillTypeFlags.BridgeSupport, new FillType("Bridge", new Vector3f(0, 0, 1))},
         };
 
-        private FixedRangeCustomDataDetails customDataBeadWidth =
+        private readonly FixedRangeCustomDataDetails customDataBeadWidth =
             new FixedRangeCustomDataDetails(
                 () => "Bead Width",
                 (value) => $"{value:F2} mm", 0.1f, 0.8f);
         public IVisualizerCustomDataDetails CustomDataDetails0 => customDataBeadWidth;
 
-        private AdaptiveRangeCustomDataDetails customDataFeedRate =
+        private readonly AdaptiveRangeCustomDataDetails customDataFeedRate =
             new AdaptiveRangeCustomDataDetails(
                 () => "Feed Rate",
                 (value) => $"{value:F0} mm/min");
         public IVisualizerCustomDataDetails CustomDataDetails1 => customDataFeedRate;
 
-        private NormalizedAdaptiveRangeCustomDataDetails customDataCompletion =
+        private readonly NormalizedAdaptiveRangeCustomDataDetails customDataCompletion =
             new NormalizedAdaptiveRangeCustomDataDetails(
                 () => "Completion",
                 (value) => $"{value:P0}");
@@ -63,23 +60,8 @@ namespace gs
         public IVisualizerCustomDataDetails CustomDataDetails4 => null;
         public IVisualizerCustomDataDetails CustomDataDetails5 => null;
 
-        public VolumetricBeadVisualizer()
-        {
-        }
-
         public void BeginGCodeLineStream()
         {
-            // TODO: Find a more decoupled way of passing in bed info.
-            if (settings == null)
-                throw new Exception("Should assign settings field before starting stream");
-
-            dimensions.x = settings.Machine.NozzleDiamMM;
-            dimensions.y = settings.LayerHeightMM;
-
-            Vector2d originRepositioning = new Vector2d(settings.Machine.BedOriginFactorX, settings.Machine.BedOriginFactorY);
-            Vector2d bedSize = new Vector2d(settings.Machine.BedSizeXMM, settings.Machine.BedSizeYMM);
-            positionShift = originRepositioning * bedSize;
-
             lastVertex = new PrintVertex(Vector3d.Zero, 0, Vector2d.Zero);
         }
 
@@ -172,7 +154,7 @@ namespace gs
             ToolpathPreviewJoint[] joints = new ToolpathPreviewJoint[printVertices.Count];
 
             joints[joints.Length - 1] =
-                GenerateMiterJoint(printVertices, joints.Length - 1, iLayer, positionShift, startPointCount, vertices);
+                GenerateMiterJoint(printVertices, joints.Length - 1, iLayer, startPointCount, vertices);
 
             for (int i = joints.Length - 2; i > 0; i--)
             {
@@ -186,22 +168,22 @@ namespace gs
                 {
                     if (angleRad < 0)
                     {
-                        joints[i] = GenerateRightBevelJoint(printVertices, i, iLayer, positionShift, startPointCount, vertices,
+                        joints[i] = GenerateRightBevelJoint(printVertices, i, iLayer, startPointCount, vertices,
                             triangles);
                     }
                     else
                     {
-                        joints[i] = GenerateLeftBevelJoint(printVertices, i, iLayer, positionShift, startPointCount, vertices,
+                        joints[i] = GenerateLeftBevelJoint(printVertices, i, iLayer, startPointCount, vertices,
                             triangles);
                     }
                 }
                 else
                 {
-                    joints[i] = GenerateMiterJoint(printVertices, i, iLayer, positionShift, startPointCount, vertices);
+                    joints[i] = GenerateMiterJoint(printVertices, i, iLayer, startPointCount, vertices);
                 }
             }
 
-            joints[0] = GenerateMiterJoint(printVertices, 0, iLayer, positionShift, startPointCount, vertices);
+            joints[0] = GenerateMiterJoint(printVertices, 0, iLayer, startPointCount, vertices);
 
             AddEdges(joints, triangles);
 
@@ -250,7 +232,7 @@ namespace gs
             }
         }
 
-        protected ToolpathPreviewJoint GenerateMiterJoint(List<PrintVertex> toolpath, int toolpathIndex, int layerIndex, Vector2d positionShift, int startPointCount, List<ToolpathPreviewVertex> vertices)
+        protected ToolpathPreviewJoint GenerateMiterJoint(List<PrintVertex> toolpath, int toolpathIndex, int layerIndex, int startPointCount, List<ToolpathPreviewVertex> vertices)
         {
 
             double miterSecant = 1;
@@ -283,15 +265,16 @@ namespace gs
             var feedRate = toolpath[toolpathIndex].FeedRate;
             ToolpathPreviewJoint joint = new ToolpathPreviewJoint();
 
-            joint.in0 = joint.out0 = AddVertex(vertices, positionShift, layerIndex, point, fillType, dimensions, feedRate, miterNormal, new Vector2d(0.5f, -0.5f), miterSecant, 0, pointCount);
-            joint.in1 = joint.out1 = AddVertex(vertices, positionShift, layerIndex, point, fillType, dimensions, feedRate, miterNormal, new Vector2d(0, 0), miterSecant, 1, pointCount);
-            joint.in2 = joint.out2 = AddVertex(vertices, positionShift, layerIndex, point, fillType, dimensions, feedRate, miterNormal, new Vector2d(-0.5f, -0.5f), miterSecant, 0, pointCount);
-            joint.in3 = joint.out3 = AddVertex(vertices, positionShift, layerIndex, point, fillType, dimensions, feedRate, miterNormal, new Vector2d(0, -1), miterSecant, 1, pointCount);
+            joint.in0 = joint.out0 = AddVertex(vertices, layerIndex, point, fillType, dimensions, feedRate, miterNormal, new Vector2d(0.5f, -0.5f), miterSecant, 0, pointCount);
+            joint.in1 = joint.out1 = AddVertex(vertices, layerIndex, point, fillType, dimensions, feedRate, miterNormal, new Vector2d(0, 0), miterSecant, 1, pointCount);
+            joint.in2 = joint.out2 = AddVertex(vertices, layerIndex, point, fillType, dimensions, feedRate, miterNormal, new Vector2d(-0.5f, -0.5f), miterSecant, 0, pointCount);
+            joint.in3 = joint.out3 = AddVertex(vertices, layerIndex, point, fillType, dimensions, feedRate, miterNormal, new Vector2d(0, -1), miterSecant, 1, pointCount);
 
             return joint;
         }
 
-        protected ToolpathPreviewJoint GenerateRightBevelJoint(List<PrintVertex> toolpath, int toolpathIndex, int layerIndex, Vector2d positionShift, int startPointCount, List<ToolpathPreviewVertex> vertices, List<int> triangles)
+        protected ToolpathPreviewJoint GenerateRightBevelJoint(List<PrintVertex> toolpath, int toolpathIndex,
+            int layerIndex, int startPointCount, List<ToolpathPreviewVertex> vertices, List<int> triangles)
         {
 
             Vector3d a = toolpath[toolpathIndex - 1].Position;
@@ -310,14 +293,14 @@ namespace gs
             ToolpathPreviewJoint joint = new ToolpathPreviewJoint();
 
             var bevelNormalIn = GetNormalAndSecant(ab, miterTangent, out double bevelSecantIn);
-            joint.in0 = AddVertex(vertices, positionShift, layerIndex, point, fillType, dimensions, feedRate, bevelNormalIn, new Vector2d(0.5, -0.5), bevelSecantIn, 0, pointCount);
+            joint.in0 = AddVertex(vertices, layerIndex, point, fillType, dimensions, feedRate, bevelNormalIn, new Vector2d(0.5, -0.5), bevelSecantIn, 0, pointCount);
 
             var bevelNormalOut = GetNormalAndSecant(miterTangent, bc, out double bevelSecantOut);
-            joint.out0 = AddVertex(vertices, positionShift, layerIndex, point, fillType, dimensions, feedRate, bevelNormalOut, new Vector2d(0.5, -0.5), bevelSecantOut, 0, pointCount);
+            joint.out0 = AddVertex(vertices, layerIndex, point, fillType, dimensions, feedRate, bevelNormalOut, new Vector2d(0.5, -0.5), bevelSecantOut, 0, pointCount);
 
-            joint.in1 = joint.out1 = AddVertex(vertices, positionShift, layerIndex, point, fillType, dimensions, feedRate, miterNormal, new Vector2d(0, 0), miterSecant, 1, pointCount);
-            joint.in2 = joint.out2 = AddVertex(vertices, positionShift, layerIndex, point, fillType, dimensions, feedRate, miterNormal, new Vector2d(-0.5, -0.5), miterSecant, 0, pointCount);
-            joint.in3 = joint.out3 = AddVertex(vertices, positionShift, layerIndex, point, fillType, dimensions, feedRate, miterNormal, new Vector2d(0, -1), miterSecant, 1, pointCount);
+            joint.in1 = joint.out1 = AddVertex(vertices, layerIndex, point, fillType, dimensions, feedRate, miterNormal, new Vector2d(0, 0), miterSecant, 1, pointCount);
+            joint.in2 = joint.out2 = AddVertex(vertices, layerIndex, point, fillType, dimensions, feedRate, miterNormal, new Vector2d(-0.5, -0.5), miterSecant, 0, pointCount);
+            joint.in3 = joint.out3 = AddVertex(vertices, layerIndex, point, fillType, dimensions, feedRate, miterNormal, new Vector2d(0, -1), miterSecant, 1, pointCount);
 
             triangles.Add(joint.in0);
             triangles.Add(joint.in1);
@@ -330,7 +313,8 @@ namespace gs
             return joint;
         }
 
-        protected ToolpathPreviewJoint GenerateLeftBevelJoint(List<PrintVertex> toolpath, int toolpathIndex, int layerIndex, Vector2d positionShift, int startPointCount, List<ToolpathPreviewVertex> vertices, List<int> triangles)
+        protected ToolpathPreviewJoint GenerateLeftBevelJoint(List<PrintVertex> toolpath, int toolpathIndex,
+            int layerIndex, int startPointCount, List<ToolpathPreviewVertex> vertices, List<int> triangles)
         {
 
             Vector3d a = toolpath[toolpathIndex - 1].Position;
@@ -348,16 +332,16 @@ namespace gs
             var feedRate = toolpath[toolpathIndex].FeedRate;
             ToolpathPreviewJoint joint = new ToolpathPreviewJoint();
 
-            joint.in0 = joint.out0 = AddVertex(vertices, positionShift, layerIndex, point, fillType, dimensions, feedRate, miterNormal, new Vector2d(0.5f, -0.5f), miterSecant, 0, pointCount);
-            joint.in1 = joint.out1 = AddVertex(vertices, positionShift, layerIndex, point, fillType, dimensions, feedRate, miterNormal, new Vector2d(0, 0), miterSecant, 1, pointCount);
+            joint.in0 = joint.out0 = AddVertex(vertices, layerIndex, point, fillType, dimensions, feedRate, miterNormal, new Vector2d(0.5f, -0.5f), miterSecant, 0, pointCount);
+            joint.in1 = joint.out1 = AddVertex(vertices, layerIndex, point, fillType, dimensions, feedRate, miterNormal, new Vector2d(0, 0), miterSecant, 1, pointCount);
 
             var bevelNormalIn = GetNormalAndSecant(ab, miterTangent, out double bevelSecantIn);
-            joint.in2 = AddVertex(vertices, positionShift, layerIndex, point, fillType, dimensions, feedRate, bevelNormalIn, new Vector2d(-0.5f, -0.5f), bevelSecantIn, 0, pointCount);
+            joint.in2 = AddVertex(vertices, layerIndex, point, fillType, dimensions, feedRate, bevelNormalIn, new Vector2d(-0.5f, -0.5f), bevelSecantIn, 0, pointCount);
 
             var bevelNormalOut = GetNormalAndSecant(miterTangent, bc, out double bevelSecantOut);
-            joint.out2 = AddVertex(vertices, positionShift, layerIndex, point, fillType, dimensions, feedRate, bevelNormalOut, new Vector2d(-0.5f, -0.5f), bevelSecantOut, 0, pointCount);
+            joint.out2 = AddVertex(vertices, layerIndex, point, fillType, dimensions, feedRate, bevelNormalOut, new Vector2d(-0.5f, -0.5f), bevelSecantOut, 0, pointCount);
 
-            joint.in3 = joint.out3 = AddVertex(vertices, positionShift, layerIndex, point, fillType, dimensions, feedRate, miterNormal, new Vector2d(0, -1), miterSecant, 1, pointCount);
+            joint.in3 = joint.out3 = AddVertex(vertices, layerIndex, point, fillType, dimensions, feedRate, miterNormal, new Vector2d(0, -1), miterSecant, 1, pointCount);
 
             triangles.Add(joint.in2);
             triangles.Add(joint.in3);
@@ -370,10 +354,12 @@ namespace gs
             return joint;
         }
 
-        protected virtual int AddVertex(List<ToolpathPreviewVertex> vertices, Vector2d positionShift, int layerIndex, Vector3d point, FillTypeFlags fillType, Vector2d dimensions, double feedrate, Vector3d miterNormal, Vector2d crossSectionVertex, double secant, float brightness, int pointCount)
+        protected virtual int AddVertex(List<ToolpathPreviewVertex> vertices, int layerIndex, Vector3d point,
+            FillTypeFlags fillType, Vector2d dimensions, double feedrate, Vector3d miterNormal,
+            Vector2d crossSectionVertex, double secant, float brightness, int pointCount)
         {
             Vector3d offset = miterNormal * (dimensions.x * crossSectionVertex.x * secant) + new Vector3d(0, 0, dimensions.y * crossSectionVertex.y);
-            Vector3d vertex = point - new Vector3d(positionShift.x, positionShift.y, 0) + offset;
+            Vector3d vertex = point + offset;
 
             Vector3f color = FillTypes[(int)FillTypeFlags.Unknown].Color;
             if (FillTypes.TryGetValue((int)fillType, out var fillInfo))
