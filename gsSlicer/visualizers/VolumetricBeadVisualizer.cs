@@ -1,6 +1,7 @@
 ﻿using g3;
 using System;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 using gs.interfaces;
 using gs.utility;
 
@@ -157,49 +158,54 @@ namespace gs
             }
         }
 
-        protected void Emit(List<PrintVertex> toolpath, int layerIndex, int startPointCount)
+        protected void Emit(List<PrintVertex> printVertices, int iLayer, int startPointCount)
         {
-            Func<Tuple<ToolpathPreviewVertex[], int[]>> func = () => {
+            var meshGenerationTask = new Task<Tuple<ToolpathPreviewVertex[], int[]>>(() => CreateMesh(printVertices, iLayer, startPointCount));
+            EndEmit(meshGenerationTask, layerIndex);
+        }
 
-                List<ToolpathPreviewVertex> vertices = new List<ToolpathPreviewVertex>();
-                List<int> triangles = new List<int>();
+        protected Tuple<ToolpathPreviewVertex[], int[]> CreateMesh(List<PrintVertex> printVertices, int iLayer, int startPointCount)
+        {
+            List<ToolpathPreviewVertex> vertices = new List<ToolpathPreviewVertex>();
+            List<int> triangles = new List<int>();
 
-                ToolpathPreviewJoint[] joints = new ToolpathPreviewJoint[toolpath.Count];
+            ToolpathPreviewJoint[] joints = new ToolpathPreviewJoint[printVertices.Count];
 
-                joints[joints.Length - 1] = GenerateMiterJoint(toolpath, joints.Length - 1, layerIndex, positionShift, startPointCount, vertices);
+            joints[joints.Length - 1] =
+                GenerateMiterJoint(printVertices, joints.Length - 1, iLayer, positionShift, startPointCount, vertices);
 
-                for (int i = joints.Length - 2; i > 0; i--)
+            for (int i = joints.Length - 2; i > 0; i--)
+            {
+                Vector3d a = printVertices[i - 1].Position;
+                Vector3d b = printVertices[i].Position;
+                Vector3d c = printVertices[i + 1].Position;
+                Vector3d ab = b - a;
+                Vector3d bc = c - b;
+                var angleRad = SignedAngleRad(ab.xy, bc.xy);
+                if (Math.Abs(angleRad) > 0.698132)
                 {
-                    Vector3d a = toolpath[i - 1].Position;
-                    Vector3d b = toolpath[i].Position;
-                    Vector3d c = toolpath[i + 1].Position;
-                    Vector3d ab = b - a;
-                    Vector3d bc = c - b;
-                    var angleRad = SignedAngleRad(ab.xy, bc.xy);
-                    if (Math.Abs(angleRad) > 0.698132)
+                    if (angleRad < 0)
                     {
-                        if (angleRad < 0)
-                        {
-                            joints[i] = GenerateRightBevelJoint(toolpath, i, layerIndex, positionShift, startPointCount, vertices, triangles);
-                        }
-                        else
-                        {
-                            joints[i] = GenerateLeftBevelJoint(toolpath, i, layerIndex, positionShift, startPointCount, vertices, triangles);
-                        }
+                        joints[i] = GenerateRightBevelJoint(printVertices, i, iLayer, positionShift, startPointCount, vertices,
+                            triangles);
                     }
                     else
                     {
-                        joints[i] = GenerateMiterJoint(toolpath, i, layerIndex, positionShift, startPointCount, vertices);
+                        joints[i] = GenerateLeftBevelJoint(printVertices, i, iLayer, positionShift, startPointCount, vertices,
+                            triangles);
                     }
                 }
+                else
+                {
+                    joints[i] = GenerateMiterJoint(printVertices, i, iLayer, positionShift, startPointCount, vertices);
+                }
+            }
 
-                joints[0] = GenerateMiterJoint(toolpath, 0, layerIndex, positionShift, startPointCount, vertices);
+            joints[0] = GenerateMiterJoint(printVertices, 0, iLayer, positionShift, startPointCount, vertices);
 
-                AddEdges(joints, triangles);
+            AddEdges(joints, triangles);
 
-                return new Tuple<ToolpathPreviewVertex[], int[]>(vertices.ToArray(), triangles.ToArray());
-            };
-            func.BeginInvoke((ar) => EndEmit(func, layerIndex, ar), null);
+            return new Tuple<ToolpathPreviewVertex[], int[]>(vertices.ToArray(), triangles.ToArray());
         }
 
         protected void AddEdges(ToolpathPreviewJoint[] joints, List<int> triangles)
@@ -423,10 +429,10 @@ namespace gs
             public int out3;
         }
 
-        protected void EndEmit(Func<Tuple<ToolpathPreviewVertex[], int[]>> func, int layerIndex, IAsyncResult ar)
+        protected async void EndEmit(Task<Tuple<ToolpathPreviewVertex[], int[]>> meshGenerationTask, int layerIndex)
         {
-            var mesh = func.EndInvoke(ar);
-            OnMeshGenerated.Invoke(mesh.Item1, mesh.Item2, layerIndex);
+            var meshTuple = await meshGenerationTask;
+            OnMeshGenerated?.Invoke(meshTuple.Item1, meshTuple.Item2, layerIndex);
         }
 
         protected static void ExtractPositionFeedrateAndExtrusion(GCodeLine line, ref Vector3d position, ref double feedrate, ref double extrusion)
