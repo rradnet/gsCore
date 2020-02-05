@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -161,7 +161,7 @@ namespace gs
         {
         }
 
-        public ThreeAxisPrintGenerator(PrintMeshAssembly meshes, 
+        public ThreeAxisPrintGenerator(PrintMeshAssembly meshes,
                                        PlanarSliceStack slices,
                                        SingleMaterialFFFSettings settings,
                                        ThreeAxisPrinterCompiler compiler)
@@ -172,7 +172,7 @@ namespace gs
 
 
 
-        public void Initialize(PrintMeshAssembly meshes, 
+        public void Initialize(PrintMeshAssembly meshes,
                                PlanarSliceStack slices,
                                SingleMaterialFFFSettings settings,
                                ThreeAxisPrinterCompiler compiler)
@@ -200,7 +200,7 @@ namespace gs
                 return new NextNearestLayerShellsSelector(layer_data.ShellFills);
             };
 
-			BeginLayerF = (layer_data) => { };
+            BeginLayerF = (layer_data) => { };
 
 			BeginShellF = (shell_fill, tag) => { };
 
@@ -243,7 +243,7 @@ namespace gs
          *  Internals
          */
 
- 
+
 
         // tags on slice polygons get transferred to shells
         protected IntTagSet<IFillPolygon> ShellTags = new IntTagSet<IFillPolygon>();
@@ -258,7 +258,7 @@ namespace gs
         {
 			//return 90;
 			//return (layer_i % 2 == 0) ? 0 : 90;
-            return (layer_i % 2 == 0) ? -45 : 45;
+                return (layer_i % 2 == 0) ? -45 : 45;
         }
 
         // start and end layers we will solve for (intersection of layercount and LayerRangeFilter)
@@ -323,14 +323,14 @@ namespace gs
             // This could be parallelized to some extent, but we have to pass per-layer paths
             // to Scheduler in layer-order. Probably better to parallelize within-layer computes.
             CurStartLayer = Math.Max(0, Settings.LayerRangeFilter.a);
-            CurEndLayer = Math.Min(nLayers-1, Settings.LayerRangeFilter.b);
-            for ( int layer_i = CurStartLayer; layer_i <= CurEndLayer; ++layer_i ) {
+            CurEndLayer = Math.Min(nLayers - 1, Settings.LayerRangeFilter.b);
+            for (int layer_i = CurStartLayer; layer_i <= CurEndLayer; ++layer_i) {
                 if (Cancelled()) return;
 
                 // allocate new layer data structure
                 SingleMaterialFFFSettings layerSettings = MakeLayerSettings(layer_i);
                 PrintLayerData layerdata = PrintLayerDataFactoryF(layer_i, Slices[layer_i], layerSettings);
-				layerdata.PreviousLayer = prevLayerData;
+                layerdata.PreviousLayer = prevLayerData;
 
 				// create path accumulator
 				ToolpathSetBuilder pathAccum = PathBuilderFactoryF(layerdata);
@@ -395,19 +395,19 @@ namespace gs
                     // retrieve precomputed solid/sparse infill regions
                     var fill_regions = LayerShellFillRegions[layer_i][shells_gen];
 
-                    // fill solid regions
-                    groupScheduler.BeginGroup();
-					// [RMS] always call this for now because we may have bridge regions
-                    // [TODO] we can precompute the bridge region calc we are doing here that is quite expensive...
-                    fill_solid_regions(fill_regions.Solid, groupScheduler, layerdata, fill_regions.Sparse.Count > 0);
-                    groupScheduler.EndGroup();
+                        // fill solid regions
+                        groupScheduler.BeginGroup();
+                        // [RMS] always call this for now because we may have bridge regions
+                        // [TODO] we can precompute the bridge region calc we are doing here that is quite expensive...
+                        fill_solid_regions(fill_regions.Solid, groupScheduler, layerdata, fill_regions.Sparse.Count > 0);
+                        groupScheduler.EndGroup();
 
-                    // fill infill regions
-                    groupScheduler.BeginGroup();
-                    fill_infill_regions(fill_regions.Sparse, groupScheduler, layerdata);
-                    groupScheduler.EndGroup();
-                    if (Cancelled()) return;
-                    count_progress_step();
+                        // fill infill regions
+                        groupScheduler.BeginGroup();
+                        fill_infill_regions(fill_regions.Sparse, groupScheduler, layerdata);
+                        groupScheduler.EndGroup();
+                        if (Cancelled()) return;
+                        count_progress_step();
 
                     groupScheduler.BeginGroup();
                     if (do_outer_last && outer_shell != null) {
@@ -429,7 +429,7 @@ namespace gs
 
 				// last chance to post-process paths for this layer before they are baked in
                 if (Cancelled()) return;
-                if ( LayerPostProcessor != null )
+                if (LayerPostProcessor != null)
                     LayerPostProcessor.Process(layerdata, pathAccum.Paths);
 
                 // change speeds if layer is going to finish too quickly
@@ -467,7 +467,7 @@ namespace gs
             // TODO: May need to force Build.EndLine() somehow if losing the end
         }
 
-
+        
         /// <summary>
         /// assemble Settings for a given layer.
         /// </summary>
@@ -486,9 +486,9 @@ namespace gs
         /// fill all infill regions
         /// </summary>
         protected virtual void fill_infill_regions(List<GeneralPolygon2d> infill_regions,
-            IFillPathScheduler2d scheduler, PrintLayerData layer_data )
+            IFillPathScheduler2d scheduler, PrintLayerData layer_data)
         {
-            if (Settings.SparseLinearInfillStepX < 0.1 || Settings.SparseLinearInfillStepX > 100 )
+            if (Settings.SparseLinearInfillStepX < 0.1 || Settings.SparseLinearInfillStepX > 100)
                 return;
             double sparse_gap_width = Settings.SparseLinearInfillStepX * Settings.Machine.NozzleDiamMM;
 
@@ -664,7 +664,7 @@ namespace gs
         protected virtual void fill_solid_region(PrintLayerData layer_data, 
 		                                         GeneralPolygon2d solid_poly, 
                                                  IFillPathScheduler2d scheduler,
-                                                 bool bIsInfillAdjacent = false )
+                                                 bool bIsInfillAdjacent = false)
         {
             if (Settings.SolidFillPathSpacingMM() == 0)
                 return;
@@ -698,17 +698,17 @@ namespace gs
 
             // now actually fill solid regions
             foreach (GeneralPolygon2d fillPoly in fillPolys) {
-				ICurvesFillPolygon solid_gen = new ParallelLinesFillPolygon(fillPoly) {
-                    InsetFromInputPolygon = false,
-                    PathSpacing = Settings.SolidFillPathSpacingMM(),
-                    ToolWidth = Settings.Machine.NozzleDiamMM,
-                    AngleDeg = LayerFillAngleF(layer_data.layer_i),
+            ICurvesFillPolygon solid_gen = new ParallelLinesFillPolygon(fillPoly) {
+                InsetFromInputPolygon = false,
+                PathSpacing = Settings.SolidFillPathSpacingMM(),
+                ToolWidth = Settings.Machine.NozzleDiamMM,
+                AngleDeg = LayerFillAngleF(layer_data.layer_i),
                     FilterSelfOverlaps = Settings.ClipSelfOverlaps
-                };
+            };
 
-                solid_gen.Compute();
+            solid_gen.Compute();
 
-				scheduler.AppendCurveSets(solid_gen.GetFillCurves());
+            scheduler.AppendCurveSets(solid_gen.GetFillCurves());
             }
         }
 
@@ -844,7 +844,7 @@ namespace gs
 
             List<GeneralPolygon2d> roof_cover = new List<GeneralPolygon2d>();
 
-            foreach (IShellsFillPolygon shells in get_layer_shells(layer_i+1))
+            foreach (IShellsFillPolygon shells in get_layer_shells(layer_i + 1))
                 roof_cover.AddRange(shells.GetInnerPolygons());
 
             // If we want > 1 roof layer, we need to look further ahead.
@@ -886,7 +886,8 @@ namespace gs
             // If we want > 1 floor layer, we need to look further back.
             for (int k = 2; k <= Settings.FloorLayers; ++k) {
                 int ri = layer_i - k;
-                if (ri > 0) {
+                if (ri >= 0)
+                {
                     List<GeneralPolygon2d> infillN = new List<GeneralPolygon2d>();
                     foreach (IShellsFillPolygon shells in get_layer_shells(ri))
                         infillN.AddRange(shells.GetInnerPolygons());
@@ -1011,7 +1012,7 @@ namespace gs
             shells_gen.Layers = Settings.Shells;
             shells_gen.FilterSelfOverlaps = Settings.ClipSelfOverlaps;
             shells_gen.SelfOverlapTolerance = Settings.SelfOverlapToleranceX * Settings.Machine.NozzleDiamMM;
-			shells_gen.OuterShellLast = Settings.OuterShellLast;
+            shells_gen.OuterShellLast = Settings.OuterShellLast;
 
             shells_gen.Compute();
             return shells_gen;
@@ -1056,7 +1057,7 @@ namespace gs
             Interval1i solve_roofs_floors = new Interval1i(start_layer, end_layer);
             gParallel.ForEach(solve_roofs_floors, (layer_i) => {
                 if (Cancelled()) return;
-                bool is_infill = (layer_i >= Settings.FloorLayers && layer_i < nLayers - Settings.RoofLayers - 1);
+                bool is_infill = (layer_i >= Settings.FloorLayers && layer_i < nLayers - Settings.RoofLayers);
 
                 if (is_infill) {
                     if (Settings.RoofLayers > 0) {
@@ -1115,7 +1116,7 @@ namespace gs
 
         protected void compute_infill_regions(int layer_i)
         {
-            bool is_infill = (layer_i >= Settings.FloorLayers && layer_i < Slices.Count - Settings.RoofLayers - 1);
+            bool is_infill = (layer_i >= Settings.FloorLayers && layer_i < Slices.Count - Settings.RoofLayers);
 
             List<GeneralPolygon2d> roof_cover = get_layer_roof_area(layer_i);
             List<GeneralPolygon2d> floor_cover = get_layer_floor_area(layer_i);
@@ -1277,7 +1278,7 @@ namespace gs
 			double fSupportOffset = Settings.SupportAreaOffsetX * Settings.Machine.NozzleDiamMM;
 
 			// we will throw away holes in support regions smaller than these thresholds
-			double DiscardHoleSizeMM = 2*Settings.Machine.NozzleDiamMM;
+            double DiscardHoleSizeMM = 2 * Settings.Machine.NozzleDiamMM;
 			double DiscardHoleArea = DiscardHoleSizeMM * DiscardHoleSizeMM;
 
             // throw away support polygons smaller than this
@@ -1298,66 +1299,66 @@ namespace gs
             bool bEnableInterLayerSmoothing = true;
 
 
-			/*
+            /*
 			 * Step 1: compute absolute support polygon for each layer
 			 */
 
-			// For layer i, compute support region needed to support layer (i+1)
-			// This is the *absolute* support area - no inset for filament width or spacing from model
+            // For layer i, compute support region needed to support layer (i+1)
+            // This is the *absolute* support area - no inset for filament width or spacing from model
 			gParallel.ForEach(Interval1i.Range(nLayers - 1), (layeri) => {
                 if (Cancelled()) return;
                 PlanarSlice slice = Slices[layeri];
-				PlanarSlice next_slice = Slices[layeri + 1];
+                PlanarSlice next_slice = Slices[layeri + 1];
 
-				// expand this layer and subtract from next layer. leftovers are
-				// what needs to be supported on next layer.
-				List<GeneralPolygon2d> expandPolys = ClipperUtil.MiterOffset(slice.Solids, fOverhangAngleDist);
-				List<GeneralPolygon2d> supportPolys = ClipperUtil.Difference(next_slice.Solids, expandPolys);
+                // expand this layer and subtract from next layer. leftovers are
+                // what needs to be supported on next layer.
+                List<GeneralPolygon2d> expandPolys = ClipperUtil.MiterOffset(slice.Solids, fOverhangAngleDist);
+                List<GeneralPolygon2d> supportPolys = ClipperUtil.Difference(next_slice.Solids, expandPolys);
 
-				// subtract regions we are going to bridge
-				List<GeneralPolygon2d> bridgePolys = get_layer_bridge_area(layeri);
-				if (bridgePolys.Count > 0) {
-					supportPolys = ClipperUtil.Difference(supportPolys, bridgePolys);
-				}
+                // subtract regions we are going to bridge
+                List<GeneralPolygon2d> bridgePolys = get_layer_bridge_area(layeri);
+                if (bridgePolys.Count > 0) {
+                    supportPolys = ClipperUtil.Difference(supportPolys, bridgePolys);
+                }
 
-				// if we have an support inset/outset, apply it here.
-				// for insets the poly may disappear, in that case we
-				// keep the original poly.
-				// [TODO] handle partial-disappears
-				if (fSupportOffset != 0) {
-					List<GeneralPolygon2d> offsetPolys = new List<GeneralPolygon2d>();
-					foreach (var poly in supportPolys) {
-						List<GeneralPolygon2d> offset = ClipperUtil.MiterOffset(poly, fSupportOffset);
-						// if offset is empty, use original poly
-						if (offset.Count == 0) {
-							offsetPolys.Add(poly);
-						} else {
-							offsetPolys.AddRange(offset);
-						}
-					}
-					supportPolys = offsetPolys;
-				}
+                // if we have an support inset/outset, apply it here.
+                // for insets the poly may disappear, in that case we
+                // keep the original poly.
+                // [TODO] handle partial-disappears
+                if (fSupportOffset != 0) {
+                    List<GeneralPolygon2d> offsetPolys = new List<GeneralPolygon2d>();
+                    foreach (var poly in supportPolys) {
+                        List<GeneralPolygon2d> offset = ClipperUtil.MiterOffset(poly, fSupportOffset);
+                        // if offset is empty, use original poly
+                        if (offset.Count == 0) {
+                            offsetPolys.Add(poly);
+                        } else {
+                            offsetPolys.AddRange(offset);
+                        }
+                    }
+                    supportPolys = offsetPolys;
+                }
 
-				// now we need to deal with tiny polys. If they are min-z-tips,
-				// we want to add larger support regions underneath them. 
-				// We determine this by measuring distance to this layer.
-				// NOTE: we **cannot** discard tiny polys here, because a bunch of
-				// tiny per-layer polygons may merge into larger support regions
-				// after dilate/contract, eg on angled thin strips. 
-                if ( true ) {
+                // now we need to deal with tiny polys. If they are min-z-tips,
+                // we want to add larger support regions underneath them. 
+                // We determine this by measuring distance to this layer.
+                // NOTE: we **cannot** discard tiny polys here, because a bunch of
+                // tiny per-layer polygons may merge into larger support regions
+                // after dilate/contract, eg on angled thin strips. 
+                if (true) {
                     List<GeneralPolygon2d> filteredPolys = new List<GeneralPolygon2d>();
-                    foreach ( var poly in supportPolys ) {
-					    var bounds = poly.Bounds;
-					    // big enough to keep
-					    if (bounds.MaxDim > fMinDiameter) {
-						    filteredPolys.Add(poly);
-						    continue;
-					    }
+                    foreach (var poly in supportPolys) {
+                        var bounds = poly.Bounds;
+                        // big enough to keep
+                        if (bounds.MaxDim > fMinDiameter) {
+                            filteredPolys.Add(poly);
+                            continue;
+                        }
 
                         // Find nearest point. If it is far from print volume, then this is a Min-Z "tip" region.
                         // These will get larger polys if SupportMinZTips is enabled
-                        double dnear_sqr = slice.DistanceSquared(bounds.Center, 2*fSupportMinDist);
-                        if ( dnear_sqr > fSupportMinDist*fSupportMinDist) {
+                        double dnear_sqr = slice.DistanceSquared(bounds.Center, 2 * fSupportMinDist);
+                        if (dnear_sqr > fSupportMinDist * fSupportMinDist) {
                             if (Settings.SupportMinZTips)
                                 filteredPolys.Add(make_support_point_poly(bounds.Center, Settings.SupportPointDiam));
                             else
@@ -1369,34 +1370,34 @@ namespace gs
                         // If we are close the print volume, then maybe we do not need to support this tip.
                         // The most conservative test is if this region is supported on two opposite sides.
                         // If not, we add a minimal support polygon.
-                        double d = 1.25*fSupportMinDist; double dsqr = d*d;
-                        Vector2d dx = d*Vector2d.AxisX, dy = d*Vector2d.AxisY;
-                        int sleft = (slice.DistanceSquared(bounds.Center-dx, 2*d) < dsqr) ? 1 : 0;
-                        int sright = (slice.DistanceSquared(bounds.Center+dx, 2*d) < dsqr) ? 1 : 0;
+                        double d = 1.25 * fSupportMinDist; double dsqr = d * d;
+                        Vector2d dx = d * Vector2d.AxisX, dy = d * Vector2d.AxisY;
+                        int sleft = (slice.DistanceSquared(bounds.Center - dx, 2 * d) < dsqr) ? 1 : 0;
+                        int sright = (slice.DistanceSquared(bounds.Center + dx, 2 * d) < dsqr) ? 1 : 0;
                         if (sleft + sright == 2)
                             continue;
-                        int sfwd = (slice.DistanceSquared(bounds.Center+dy, 2*d) < dsqr) ? 1 : 0;
-                        int sback = (slice.DistanceSquared(bounds.Center-dy, 2*d) < dsqr) ? 1 : 0;
+                        int sfwd = (slice.DistanceSquared(bounds.Center + dy, 2 * d) < dsqr) ? 1 : 0;
+                        int sback = (slice.DistanceSquared(bounds.Center - dy, 2 * d) < dsqr) ? 1 : 0;
                         if (sfwd + sback == 2)
                             continue;
 
                         // ok force support
                         filteredPolys.Add(make_support_point_poly(bounds.Center, fMinDiameter));
-				    }
+                    }
                     supportPolys.Clear();
                     supportPolys.AddRange(filteredPolys);
-                } 
+                }
 
-				// add any explicit support points in this layer as circles
-				foreach (Vector2d v in slice.InputSupportPoints)
-					supportPolys.Add(make_support_point_poly(v));
+                // add any explicit support points in this layer as circles
+                foreach (Vector2d v in slice.InputSupportPoints)
+                    supportPolys.Add(make_support_point_poly(v));
 
                 if (PathClipRegions != null)
                     supportPolys = ClipperUtil.Intersection(supportPolys, PathClipRegions);
 
                 LayerSupportAreas[layeri] = supportPolys;
                 count_progress_step();
-            });
+        });
             LayerSupportAreas[nLayers-1] = new List<GeneralPolygon2d>();
 
 
@@ -1420,7 +1421,7 @@ namespace gs
                 foreach ( GeneralPolygon2d solid in prevSupport ) {
                     GeneralPolygon2d copy = new GeneralPolygon2d();
                     copy.Outer = new Polygon2d(solid.Outer);
-                    if ( grow || shrink )
+                    if (grow || shrink)
                         CurveUtils2.LaplacianSmoothConstrained(copy.Outer, 0.5, 5, fMergeDownDilate, shrink, grow);
 
 					// [RMS] here we are also smoothing interior holes. However (in theory) this 
@@ -1549,7 +1550,7 @@ namespace gs
 		/// </summary>
 		protected virtual GeneralPolygon2d make_support_point_poly(Vector2d v, double diameter = -1)
 		{
-			if ( diameter <= 0 )
+            if (diameter <= 0)
 				diameter = Settings.SupportPointDiam;
 			Polygon2d circ = Polygon2d.MakeCircle(
 				diameter * 0.5, Settings.SupportPointSides);
@@ -1594,7 +1595,7 @@ namespace gs
 			int NV = poly.VertexCount;
 			for (int k = 0; k < NV; ++k) {
 				Vector2d v = poly[k];
-				if ( k > 0 && poly.OpeningAngleDeg(k) > 179 )
+                if (k > 0 && poly.OpeningAngleDeg(k) > 179)
 					continue;
 				if (is_connected(poly[k], iLayer, fTolDelta) == false)
 					return false;

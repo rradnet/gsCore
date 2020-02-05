@@ -50,17 +50,18 @@ namespace gsCore.FunctionalTests.Utility
             {
                 Vector2d average = new Segment2d(VertexCurrent.Position.xy, VertexPrevious.Position.xy).Center;
                 double distance = VertexCurrent.Position.Distance(VertexPrevious.Position);
-                
-                currentFeatureInfo.Extrusion += extrusionAmount - VertexPrevious.Extrusion.x;
+
+                double extrusion = extrusionAmount - VertexPrevious.Extrusion.x;
+                currentFeatureInfo.Extrusion += extrusion;
                 currentFeatureInfo.Distance += distance;
                 currentFeatureInfo.BoundingBox.Contain(VertexCurrent.Position.xy);
-                currentFeatureInfo.CenterOfMass += average * currentFeatureInfo.Extrusion;
+                currentFeatureInfo.UnweightedCenterOfMass += average * extrusion;
                 currentFeatureInfo.Duration += distance / VertexCurrent.FeedRate;
 
                 VertexCurrent.Extrusion = new Vector3d(extrusionAmount, 0, 0);
             }
 
-            VertexPrevious = VertexCurrent;
+            VertexPrevious = new PrintVertex(VertexCurrent);
         }
 
         public void Initialize()
