@@ -195,7 +195,7 @@ namespace gs
         public double MachineBedSizeZMM => Machine.MaxHeightMM;
         public double MachineBedOriginFactorX => Machine.BedOriginFactorX;
         public double MachineBedOriginFactorY => Machine.BedOriginFactorY;
-        public IProfile Clone()
+        public virtual IProfile Clone()
         {
             return CloneAs<SingleMaterialFFFSettings>();
         }

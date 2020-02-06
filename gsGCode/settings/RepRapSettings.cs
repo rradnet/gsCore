@@ -2,6 +2,7 @@
 using System.Linq;
 using System.Text;
 using g3;
+using gs.interfaces;
 
 namespace gs.info
 {
@@ -20,6 +21,11 @@ namespace gs.info
 	public class RepRapSettings : GenericRepRapSettings
     {
 		public RepRap.Models ModelEnum;
+
+        public override IProfile Clone()
+        {
+            return CloneAs<RepRapSettings>();
+        }
 
         public override AssemblerFactoryF AssemblerType()
         {
