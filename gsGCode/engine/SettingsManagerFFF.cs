@@ -20,7 +20,13 @@ namespace gs.engines
                 return factory_profiles;
             } }
 
-        public override IUserSettingCollection<SingleMaterialFFFSettings> UserSettings =>
-            new UserSettingsFFF<SingleMaterialFFFSettings>();
+        public override IUserSettingCollection<SingleMaterialFFFSettings> MachineUserSettings =>
+            new MachineUserSettingsFFF<SingleMaterialFFFSettings>();
+
+        public override IUserSettingCollection<SingleMaterialFFFSettings> MaterialUserSettings =>
+            new MaterialUserSettingsFFF<SingleMaterialFFFSettings>();
+
+        public override IUserSettingCollection<SingleMaterialFFFSettings> PrintUserSettings =>
+            new PrintUserSettingsFFF<SingleMaterialFFFSettings>();
     }
 }

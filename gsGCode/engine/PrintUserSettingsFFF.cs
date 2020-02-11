@@ -3,7 +3,8 @@ using gs.interfaces;
 
 namespace gs.engines
 {
-    public class UserSettingsFFF<TSettings> : UserSettingCollection<TSettings> where TSettings : SingleMaterialFFFSettings {
+    public class PrintUserSettingsFFF<TSettings> : UserSettingCollection<TSettings> where TSettings : SingleMaterialFFFSettings
+    {
 
         #region Advanced
 
@@ -18,6 +19,7 @@ namespace gs.engines
             (settings, val) => settings.Machine.EnableAutoBedLeveling = val);
 
         #endregion
+
         #region Basic
 
         public static readonly UserSettingGroup GroupBasic =
@@ -29,22 +31,6 @@ namespace gs.engines
             GroupBasic,
             (settings) => settings.EnableBridging,
             (settings, val) => settings.EnableBridging = val);
-
-        public UserSettingInt<TSettings> ExtruderTempC = new UserSettingInt<TSettings>(
-            () => UserSettingTranslations.ExtruderTempC_Name,
-            () => UserSettingTranslations.ExtruderTempC_Description,
-            GroupBasic,
-            (settings) => settings.ExtruderTempC,
-            (settings, val) => settings.ExtruderTempC = val,
-            UserSettingNumericValidations<int>.ValidateMin(-273, ValidationResult.Level.Error));
-
-        public UserSettingDouble<TSettings> FilamentDiamMM = new UserSettingDouble<TSettings>(
-            () => UserSettingTranslations.FilamentDiamMM_Name,
-            () => UserSettingTranslations.FilamentDiamMM_Description,
-            GroupBasic,
-            (settings) => settings.Machine.FilamentDiamMM,
-            (settings, val) => settings.Machine.FilamentDiamMM = val,
-            UserSettingNumericValidations<double>.ValidateMin(0, ValidationResult.Level.Error));
 
         public UserSettingInt<TSettings> FloorLayers = new UserSettingInt<TSettings>(
             () => UserSettingTranslations.FloorLayers_Name,
@@ -60,14 +46,6 @@ namespace gs.engines
             GroupBasic,
             (settings) => settings.GenerateSupport,
             (settings, val) => settings.GenerateSupport = val);
-
-        public UserSettingInt<TSettings> HeatedBedTempC = new UserSettingInt<TSettings>(
-            () => UserSettingTranslations.HeatedBedTempC_Name,
-            () => UserSettingTranslations.HeatedBedTempC_Description,
-            GroupBasic,
-            (settings) => settings.HeatedBedTempC,
-            (settings, val) => settings.HeatedBedTempC = val,
-            UserSettingNumericValidations<int>.ValidateMin(-273, ValidationResult.Level.Error));
 
         public UserSettingDouble<TSettings> LayerHeightMM = new UserSettingDouble<TSettings>(
             () => UserSettingTranslations.LayerHeightMM_Name,
@@ -102,6 +80,7 @@ namespace gs.engines
             UserSettingNumericValidations<int>.ValidateMin(0, ValidationResult.Level.Error));
 
         #endregion
+        
         #region Bridging
 
         public static readonly UserSettingGroup GroupBridging =
@@ -140,72 +119,7 @@ namespace gs.engines
             UserSettingNumericValidations<double>.ValidateMin(0, ValidationResult.Level.Error));
 
         #endregion
-        #region Capabilities
-
-        public static readonly UserSettingGroup GroupCapabilities =
-            new UserSettingGroup(() => UserSettingTranslations.GroupCapabilities);
-
-        public UserSettingBool<TSettings> HasAutoBedLeveling = new UserSettingBool<TSettings>(
-            () => UserSettingTranslations.HasAutoBedLeveling_Name,
-            () => UserSettingTranslations.HasAutoBedLeveling_Description,
-            GroupCapabilities,
-            (settings) => settings.Machine.HasAutoBedLeveling,
-            (settings, val) => settings.Machine.HasAutoBedLeveling = val);
-
-        public UserSettingBool<TSettings> HasHeatedBed = new UserSettingBool<TSettings>(
-            () => UserSettingTranslations.HasHeatedBed_Name,
-            () => UserSettingTranslations.HasHeatedBed_Description,
-            GroupCapabilities,
-            (settings) => settings.Machine.HasHeatedBed,
-            (settings, val) => settings.Machine.HasHeatedBed = val);
-
-        public UserSettingDouble<TSettings> MaxLayerHeightMM = new UserSettingDouble<TSettings>(
-            () => UserSettingTranslations.MaxLayerHeightMM_Name,
-            () => UserSettingTranslations.MaxLayerHeightMM_Description,
-            GroupCapabilities,
-            (settings) => settings.Machine.MaxLayerHeightMM,
-            (settings, val) => settings.Machine.MaxLayerHeightMM = val,
-            UserSettingNumericValidations<double>.ValidateMin(0, ValidationResult.Level.Error));
-
-        public UserSettingDouble<TSettings> MinLayerHeightMM = new UserSettingDouble<TSettings>(
-            () => UserSettingTranslations.MinLayerHeightMM_Name,
-            () => UserSettingTranslations.MinLayerHeightMM_Description,
-            GroupCapabilities,
-            (settings) => settings.Machine.MinLayerHeightMM,
-            (settings, val) => settings.Machine.MinLayerHeightMM = val,
-            UserSettingNumericValidations<double>.ValidateMin(0, ValidationResult.Level.Error));
-
-        #endregion
-        #region Extruder
-
-        public static readonly UserSettingGroup GroupExtruder =
-            new UserSettingGroup(() => UserSettingTranslations.GroupExtruder);
-
-        public UserSettingInt<TSettings> MaxExtruderTempC = new UserSettingInt<TSettings>(
-            () => UserSettingTranslations.MaxExtruderTempC_Name,
-            () => UserSettingTranslations.MaxExtruderTempC_Description,
-            GroupExtruder,
-            (settings) => settings.Machine.MaxExtruderTempC,
-            (settings, val) => settings.Machine.MaxExtruderTempC = val,
-            UserSettingNumericValidations<int>.ValidateMin(-273, ValidationResult.Level.Error));
-
-        public UserSettingInt<TSettings> MinExtruderTempC = new UserSettingInt<TSettings>(
-            () => UserSettingTranslations.MinExtruderTempC_Name,
-            () => UserSettingTranslations.MinExtruderTempC_Description,
-            GroupExtruder,
-            (settings) => settings.Machine.MinExtruderTempC,
-            (settings, val) => settings.Machine.MinExtruderTempC = val,
-            UserSettingNumericValidations<int>.ValidateMin(-273, ValidationResult.Level.Error));
-
-        public UserSettingDouble<TSettings> NozzleDiamMM = new UserSettingDouble<TSettings>(
-            () => UserSettingTranslations.NozzleDiamMM_Name,
-            () => UserSettingTranslations.NozzleDiamMM_Description,
-            GroupExtruder,
-            (settings) => settings.Machine.NozzleDiamMM,
-            (settings, val) => settings.Machine.NozzleDiamMM = val,
-            UserSettingNumericValidations<double>.ValidateMin(0, ValidationResult.Level.Error));
-
-        #endregion
+        
         #region FirstLayer
 
         public static readonly UserSettingGroup GroupFirstLayer =
@@ -236,28 +150,7 @@ namespace gs.engines
             UserSettingNumericValidations<int>.ValidateMin(0, ValidationResult.Level.Error));
 
         #endregion
-        #region HeatedBed
-
-        public static readonly UserSettingGroup GroupHeatedBed =
-            new UserSettingGroup(() => UserSettingTranslations.GroupHeatedBed);
-
-        public UserSettingInt<TSettings> MaxBedTempC = new UserSettingInt<TSettings>(
-            () => UserSettingTranslations.MaxBedTempC_Name,
-            () => UserSettingTranslations.MaxBedTempC_Description,
-            GroupHeatedBed,
-            (settings) => settings.Machine.MaxBedTempC,
-            (settings, val) => settings.Machine.MaxBedTempC = val,
-            UserSettingNumericValidations<int>.ValidateMin(-273, ValidationResult.Level.Error));
-
-        public UserSettingInt<TSettings> MinBedTempC = new UserSettingInt<TSettings>(
-            () => UserSettingTranslations.MinBedTempC_Name,
-            () => UserSettingTranslations.MinBedTempC_Description,
-            GroupHeatedBed,
-            (settings) => settings.Machine.MinBedTempC,
-            (settings, val) => settings.Machine.MinBedTempC = val,
-            UserSettingNumericValidations<int>.ValidateMin(-273, ValidationResult.Level.Error));
-
-        #endregion
+        
         #region Hidden
 
         public static readonly UserSettingGroup GroupHidden =
@@ -321,6 +214,7 @@ namespace gs.engines
             UserSettingNumericValidations<double>.ValidateMin(0, ValidationResult.Level.Error));
 
         #endregion
+        
         #region Miscellaneous
 
         public static readonly UserSettingGroup GroupMiscellaneous =
@@ -335,6 +229,7 @@ namespace gs.engines
             UserSettingNumericValidations<double>.ValidateMin(0, ValidationResult.Level.Error));
 
         #endregion
+        
         #region Perimeters
 
         public static readonly UserSettingGroup GroupPerimeters =
@@ -379,66 +274,7 @@ namespace gs.engines
             UserSettingNumericValidations<double>.ValidateMin(0, ValidationResult.Level.Error));
 
         #endregion
-        #region PrintVolume
-
-        public static readonly UserSettingGroup GroupPrintVolume =
-           new UserSettingGroup(() => UserSettingTranslations.GroupPrintVolume);
-
-        public UserSettingDouble<TSettings> BedSizeXMM = new UserSettingDouble<TSettings>(
-            () => UserSettingTranslations.BedSizeXMM_Name,
-            () => UserSettingTranslations.BedSizeXMM_Description,
-            GroupPrintVolume,
-            (settings) => settings.Machine.BedSizeXMM,
-            (settings, val) => settings.Machine.BedSizeXMM = val,
-            UserSettingNumericValidations<double>.ValidateMin(0, ValidationResult.Level.Error));
-
-        public UserSettingDouble<TSettings> BedSizeYMM = new UserSettingDouble<TSettings>(
-            () => UserSettingTranslations.BedSizeYMM_Name,
-            () => UserSettingTranslations.BedSizeYMM_Description,
-            GroupPrintVolume,
-            (settings) => settings.Machine.BedSizeYMM,
-            (settings, val) => settings.Machine.BedSizeYMM = val,
-            UserSettingNumericValidations<double>.ValidateMin(0, ValidationResult.Level.Error));
-
-        public UserSettingDouble<TSettings> MaxHeightMM = new UserSettingDouble<TSettings>(
-            () => UserSettingTranslations.MaxHeightMM_Name,
-            () => UserSettingTranslations.MaxHeightMM_Description,
-            GroupPrintVolume,
-            (settings) => settings.Machine.MaxHeightMM,
-            (settings, val) => settings.Machine.MaxHeightMM = val,
-            UserSettingNumericValidations<double>.ValidateMin(0, ValidationResult.Level.Error));
-
-        #endregion
-        #region Retraction
-
-        public static readonly UserSettingGroup GroupRetraction =
-            new UserSettingGroup(() => UserSettingTranslations.GroupRetraction);
-
-        public UserSettingDouble<TSettings> MinRetractTravelLength = new UserSettingDouble<TSettings>(
-            () => UserSettingTranslations.MinRetractTravelLength_Name,
-            () => UserSettingTranslations.MinRetractTravelLength_Description,
-            GroupRetraction,
-            (settings) => settings.MinRetractTravelLength,
-            (settings, val) => settings.MinRetractTravelLength = val,
-            UserSettingNumericValidations<double>.ValidateMin(0, ValidationResult.Level.Error));
-
-        public UserSettingDouble<TSettings> RetractDistanceMM = new UserSettingDouble<TSettings>(
-            () => UserSettingTranslations.RetractDistanceMM_Name,
-            () => UserSettingTranslations.RetractDistanceMM_Description,
-            GroupRetraction,
-            (settings) => settings.RetractDistanceMM,
-            (settings, val) => settings.RetractDistanceMM = val,
-            UserSettingNumericValidations<double>.ValidateMin(0, ValidationResult.Level.Error));
-
-        public UserSettingDouble<TSettings> RetractSpeed = new UserSettingDouble<TSettings>(
-            () => UserSettingTranslations.RetractSpeed_Name,
-            () => UserSettingTranslations.RetractSpeed_Description,
-            GroupRetraction,
-            (settings) => settings.RetractSpeed,
-            (settings, val) => settings.RetractSpeed = val,
-            UserSettingNumericValidations<double>.ValidateMin(0, ValidationResult.Level.Error));
-
-        #endregion
+        
         #region SolidFill
 
         public static readonly UserSettingGroup GroupSolidFill =
@@ -461,6 +297,7 @@ namespace gs.engines
             UserSettingNumericValidations<double>.ValidateMin(0, ValidationResult.Level.Error));
 
         #endregion
+        
         #region SparseFill
 
         public static readonly UserSettingGroup GroupSparseFill =
@@ -483,43 +320,12 @@ namespace gs.engines
            UserSettingNumericValidations<double>.ValidateMin(0, ValidationResult.Level.Error));
 
         #endregion
+        
         #region Speeds
 
         public static readonly UserSettingGroup GroupSpeeds =
             new UserSettingGroup(() => UserSettingTranslations.GroupSpeeds);
-
-        public UserSettingInt<TSettings> MaxExtrudeSpeedMMM = new UserSettingInt<TSettings>(
-            () => UserSettingTranslations.MaxExtrudeSpeedMMM_Name,
-            () => UserSettingTranslations.MaxExtrudeSpeedMMM_Description,
-            GroupSpeeds,
-            (settings) => settings.Machine.MaxExtrudeSpeedMMM,
-            (settings, val) => settings.Machine.MaxExtrudeSpeedMMM = val,
-            UserSettingNumericValidations<int>.ValidateMin(0, ValidationResult.Level.Error));
-
-        public UserSettingInt<TSettings> MaxRetractSpeedMMM = new UserSettingInt<TSettings>(
-            () => UserSettingTranslations.MaxRetractSpeedMMM_Name,
-            () => UserSettingTranslations.MaxRetractSpeedMMM_Description,
-            GroupSpeeds,
-            (settings) => settings.Machine.MaxRetractSpeedMMM,
-            (settings, val) => settings.Machine.MaxRetractSpeedMMM = val,
-            UserSettingNumericValidations<int>.ValidateMin(0, ValidationResult.Level.Error));
-
-        public UserSettingInt<TSettings> MaxTravelSpeedMMM = new UserSettingInt<TSettings>(
-            () => UserSettingTranslations.MaxTravelSpeedMMM_Name,
-            () => UserSettingTranslations.MaxTravelSpeedMMM_Description,
-            GroupSpeeds,
-            (settings) => settings.Machine.MaxTravelSpeedMMM,
-            (settings, val) => settings.Machine.MaxTravelSpeedMMM = val,
-            UserSettingNumericValidations<int>.ValidateMin(0, ValidationResult.Level.Error));
-
-        public UserSettingInt<TSettings> MaxZTravelSpeedMMM = new UserSettingInt<TSettings>(
-            () => UserSettingTranslations.MaxZTravelSpeedMMM_Name,
-            () => UserSettingTranslations.MaxZTravelSpeedMMM_Description,
-            GroupSpeeds,
-            (settings) => settings.Machine.MaxZTravelSpeedMMM,
-            (settings, val) => settings.Machine.MaxZTravelSpeedMMM = val,
-            UserSettingNumericValidations<int>.ValidateMin(0, ValidationResult.Level.Error));
-
+        
         public UserSettingDouble<TSettings> OuterPerimeterSpeedX = new UserSettingDouble<TSettings>(
             () => UserSettingTranslations.OuterPerimeterSpeedX_Name,
             () => UserSettingTranslations.OuterPerimeterSpeedX_Description,
@@ -553,6 +359,7 @@ namespace gs.engines
             UserSettingNumericValidations<double>.ValidateMin(0, ValidationResult.Level.Error));
 
         #endregion
+        
         #region Support
 
         public static readonly UserSettingGroup GroupSupport =
