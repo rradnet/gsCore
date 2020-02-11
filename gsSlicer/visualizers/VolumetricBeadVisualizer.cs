@@ -140,21 +140,15 @@ namespace gs
             }
         }
 
-        protected void Emit(List<PrintVertex> printVertices, int iLayer, int startPointCount)
+        protected void Emit(List<PrintVertex> printVertices, int layerIndex, int startPointCount)
         {
-            var meshGenerationTask = new Task<Tuple<ToolpathPreviewVertex[], int[]>>(() => CreateMesh(printVertices, iLayer, startPointCount));
-            EndEmit(meshGenerationTask, layerIndex);
-        }
 
-        protected Tuple<ToolpathPreviewVertex[], int[]> CreateMesh(List<PrintVertex> printVertices, int iLayer, int startPointCount)
-        {
             List<ToolpathPreviewVertex> vertices = new List<ToolpathPreviewVertex>();
             List<int> triangles = new List<int>();
 
             ToolpathPreviewJoint[] joints = new ToolpathPreviewJoint[printVertices.Count];
 
-            joints[joints.Length - 1] =
-                GenerateMiterJoint(printVertices, joints.Length - 1, iLayer, startPointCount, vertices);
+            joints[joints.Length - 1] = GenerateMiterJoint(printVertices, joints.Length - 1, layerIndex, startPointCount, vertices);
 
             for (int i = joints.Length - 2; i > 0; i--)
             {
@@ -168,26 +162,26 @@ namespace gs
                 {
                     if (angleRad < 0)
                     {
-                        joints[i] = GenerateRightBevelJoint(printVertices, i, iLayer, startPointCount, vertices,
-                            triangles);
+                        joints[i] = GenerateRightBevelJoint(printVertices, i, layerIndex, startPointCount, vertices, triangles);
                     }
                     else
                     {
-                        joints[i] = GenerateLeftBevelJoint(printVertices, i, iLayer, startPointCount, vertices,
-                            triangles);
+                        joints[i] = GenerateLeftBevelJoint(printVertices, i, layerIndex, startPointCount, vertices, triangles);
                     }
                 }
                 else
                 {
-                    joints[i] = GenerateMiterJoint(printVertices, i, iLayer, startPointCount, vertices);
+                    joints[i] = GenerateMiterJoint(printVertices, i, layerIndex, startPointCount, vertices);
                 }
             }
 
-            joints[0] = GenerateMiterJoint(printVertices, 0, iLayer, startPointCount, vertices);
+            joints[0] = GenerateMiterJoint(printVertices, 0, layerIndex, startPointCount, vertices);
 
             AddEdges(joints, triangles);
 
-            return new Tuple<ToolpathPreviewVertex[], int[]>(vertices.ToArray(), triangles.ToArray());
+            var mesh = new Tuple<ToolpathPreviewVertex[], int[]>(vertices.ToArray(), triangles.ToArray());
+
+            EndEmit(mesh, layerIndex);
         }
 
         protected void AddEdges(ToolpathPreviewJoint[] joints, List<int> triangles)
@@ -415,10 +409,9 @@ namespace gs
             public int out3;
         }
 
-        protected async void EndEmit(Task<Tuple<ToolpathPreviewVertex[], int[]>> meshGenerationTask, int layerIndex)
+        protected void EndEmit(Tuple<ToolpathPreviewVertex[], int[]> mesh, int layerIndex)
         {
-            var meshTuple = await meshGenerationTask;
-            OnMeshGenerated?.Invoke(meshTuple.Item1, meshTuple.Item2, layerIndex);
+            OnMeshGenerated?.Invoke(mesh.Item1, mesh.Item2, layerIndex);
         }
 
         protected static void ExtractPositionFeedrateAndExtrusion(GCodeLine line, ref Vector3d position, ref double feedrate, ref double extrusion)
