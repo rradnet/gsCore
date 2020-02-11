@@ -45,6 +45,16 @@ namespace gs
         public Func<Vector3d, Vector3d> PositionF = null;
         public Func<double, double> FeedRateModifierF = null;
         public Func<Vector3d, Vector3d> ExtrusionModifierF = null;
+        public TPVertexData()
+        { }
+
+        public TPVertexData(TPVertexData other)
+        {
+            Flags = other.Flags;
+            PositionF = other.PositionF;
+            FeedRateModifierF = other.FeedRateModifierF;
+            ExtrusionModifierF = other.ExtrusionModifierF;
+        }
     }
 
 
@@ -87,6 +97,16 @@ namespace gs
             ExtendedData = null;
             Source = null;
 		}
+
+        public PrintVertex(PrintVertex other)
+        {
+            Position = new Vector3d(other.Position);
+            FeedRate = other.FeedRate;
+            Dimensions = new Vector2d(other.Dimensions);
+            Extrusion = new Vector3d(other.Extrusion);
+            ExtendedData = other.ExtendedData == null ? null : new TPVertexData(other.ExtendedData);
+            Source = other.Source;
+        }
 
 		public static implicit operator Vector3d(PrintVertex v)
 		{

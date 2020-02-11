@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using gs.interfaces;
 
 namespace gs.info
 {
@@ -25,6 +26,11 @@ namespace gs.info
 	public class MakerbotSettings : SingleMaterialFFFSettings, ISailfishSettings
     {
         public Makerbot.Models ModelEnum;
+
+        public override IProfile Clone()
+        {
+            return CloneAs<MakerbotSettings>();
+        }
 
         public override AssemblerFactoryF AssemblerType()
         {

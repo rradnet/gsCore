@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using gs.interfaces;
 
 namespace gs.info
 {
@@ -19,6 +20,11 @@ namespace gs.info
 	public class MonopriceSettings : GenericRepRapSettings
     {
 		public Monoprice.Models ModelEnum;
+		
+        public override IProfile Clone()
+        {
+            return CloneAs<MonopriceSettings>();
+        }
 
         public override AssemblerFactoryF AssemblerType()
         {

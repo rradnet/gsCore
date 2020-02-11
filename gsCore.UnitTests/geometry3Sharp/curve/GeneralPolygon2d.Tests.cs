@@ -1,11 +1,7 @@
-﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
-using g3;
-using System;
-using System.Collections.Generic;
-using System.Text;
-using gsCore.UnitTests;
+﻿using gsCore.UnitTests;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 
-namespace g3.UnitTests
+namespace g3.curve.UnitTests
 {
     [TestClass()]
     public class GeneralPolygon2dTests

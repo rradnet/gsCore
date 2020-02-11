@@ -1,7 +1,14 @@
-﻿namespace gs.info
+﻿using gs.interfaces;
+
+namespace gs.info
 {
     public class GenericPrinterSettings : GenericRepRapSettings
     {
+        public override IProfile Clone()
+        {
+            return CloneAs<GenericPrinterSettings>();
+        }
+
         public override AssemblerFactoryF AssemblerType()
         {
             return RepRapAssembler.Factory;
