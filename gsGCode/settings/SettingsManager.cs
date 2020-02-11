@@ -11,7 +11,9 @@ namespace gs
         where TSettings : PlanarAdditiveSettings, IProfile
     {
         public abstract List<TSettings> FactorySettings { get; }
-        public abstract IUserSettingCollection<TSettings> UserSettings { get; }
+        public abstract IUserSettingCollection<TSettings> MachineUserSettings { get; }
+        public abstract IUserSettingCollection<TSettings> MaterialUserSettings { get; }
+        public abstract IUserSettingCollection<TSettings> PrintUserSettings { get; }
 
         List<IProfile> ISettingsManager.FactorySettings
         {
@@ -23,7 +25,9 @@ namespace gs
             }
         }
 
-        IUserSettingCollection ISettingsManager.UserSettings => UserSettings;
+        IUserSettingCollection ISettingsManager.MachineUserSettings => MachineUserSettings;
+        IUserSettingCollection ISettingsManager.MaterialUserSettings => MaterialUserSettings;
+        IUserSettingCollection ISettingsManager.PrintUserSettings => PrintUserSettings;
 
         private static JsonSerializerSettings jsonSerializerSettings = new JsonSerializerSettings
         {

@@ -11,7 +11,9 @@ namespace gs.interfaces
         void ApplyJSON(IProfile settings, string json);
         void ApplyKeyValuePair(IProfile settings, string keyValue);
 
-        IUserSettingCollection UserSettings { get; }
+        IUserSettingCollection MachineUserSettings { get; }
+        IUserSettingCollection MaterialUserSettings { get; }
+        IUserSettingCollection PrintUserSettings { get; }
     }
 
 
@@ -25,6 +27,10 @@ namespace gs.interfaces
         void ApplyJSON(TSettings settings, string json);
         void ApplyKeyValuePair(TSettings settings, string keyValue);
 
-        new IUserSettingCollection<TSettings> UserSettings { get; }
+        new IUserSettingCollection<TSettings> MachineUserSettings { get; }
+
+        new IUserSettingCollection<TSettings> MaterialUserSettings { get; }
+
+        new IUserSettingCollection<TSettings> PrintUserSettings { get; }
     }
 }

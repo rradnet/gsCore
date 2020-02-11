@@ -186,7 +186,7 @@ namespace sutro.CLI
 
             // Perform setting validations
             Console.WriteLine("Validating settings...");
-            var validations = engine.SettingsManager.UserSettings.Validate(settings);
+            var validations = engine.SettingsManager.PrintUserSettings.Validate(settings);
             int errorCount = 0;
             foreach (var v in validations)
             {

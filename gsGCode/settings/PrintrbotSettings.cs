@@ -2,6 +2,7 @@
 using System.Linq;
 using System.Text;
 using g3;
+using gs.interfaces;
 
 namespace gs.info
 {
@@ -22,6 +23,11 @@ namespace gs.info
 	public class PrintrbotSettings : GenericRepRapSettings
     {
 		public Printrbot.Models ModelEnum;
+
+        public override IProfile Clone()
+        {
+            return CloneAs<PrintrbotSettings>();
+        }
 
         public override AssemblerFactoryF AssemblerType()
         {
