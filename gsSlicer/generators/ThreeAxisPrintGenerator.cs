@@ -116,8 +116,14 @@ namespace gs
         // will be set to true if CancelF() ever returns true
         public bool WasCancelled = false;
 
-
-        private InfillRegionGenerator infillRegionGenerator = new InfillRegionGenerator();
+        public Func<SingleMaterialFFFSettings, InfillRegionGenerator> InfillRegionGeneratorF { get; set; } =
+            (settings) => new InfillRegionGenerator()
+            {
+                FloorLayers = settings.FloorLayers,
+                RoofLayers = settings.RoofLayers,
+                MinimumArea = Math.Pow(settings.Machine.NozzleDiamMM, 2),
+                InfillInsetDistanceMM = 2 * settings.Machine.NozzleDiamMM,
+            };
 
         // Replace this if you want to customize PrintLayerData type
         public Func<int, PlanarSlice, SingleMaterialFFFSettings, PrintLayerData> PrintLayerDataFactoryF;
@@ -297,8 +303,9 @@ namespace gs
             if (Cancelled()) return;
             int nLayers = Slices.Count;
 
-            // compute roofs/floors in parallel based on shells
-            LayerInfillRegions = infillRegionGenerator.ComputeInteriorRegions(Slices, Settings, CancelF, count_progress_step);
+            // Compute interior regions in parallel
+            LayerInfillRegions = InfillRegionGeneratorF(Settings).ComputeInteriorRegions(
+                Slices.Slices, OutputLayerInterval(Settings, nLayers), CancelF, count_progress_step);
             if (Cancelled()) return;
 
             // compute solid/sparse in parallel based on shell interios, roofs & floors
@@ -458,6 +465,13 @@ namespace gs
             PostProcessCompilerF(Compiler, this);
 
             // TODO: May need to force Build.EndLine() somehow if losing the end
+        }
+
+        protected static Interval1i OutputLayerInterval(SingleMaterialFFFSettings settings, int nLayers)
+        {
+            int start_layer = Math.Max(0, settings.LayerRangeFilter.a);
+            int end_layer = Math.Min(nLayers - 1, settings.LayerRangeFilter.b);
+            return new Interval1i(start_layer, end_layer);
         }
 
         /// <summary>

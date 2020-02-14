@@ -1,91 +1,75 @@
-﻿using g3;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using g3;
 
 namespace gs.generators
 {
     public class InfillRegionGenerator
     {
-        protected virtual IEnumerable<int> FloorLayerIndices(int layerIndex, int layerCount, SingleMaterialFFFSettings Settings)
+        public int FloorLayers { get; set; } = 2;
+        public int RoofLayers { get; set; } = 2;
+        public double MinimumArea { get; set; } = 0;
+        public double InfillInsetDistanceMM { get; set; } = 1;
+
+        protected virtual IEnumerable<int> FloorLayerIndices(int layerIndex, int layerCount)
         {
-            for (int floorIndex = layerIndex - Settings.FloorLayers; floorIndex < layerIndex; ++floorIndex)
-            {
+            for (var floorIndex = layerIndex - FloorLayers; floorIndex < layerIndex; ++floorIndex)
                 if (floorIndex >= 0)
-                {
                     yield return floorIndex;
-                }
-            }
         }
 
-        protected virtual IEnumerable<int> RoofLayerIndices(int layerIndex, int layerCount, SingleMaterialFFFSettings Settings)
+        protected virtual IEnumerable<int> RoofLayerIndices(int layerIndex, int layerCount)
         {
-            for (int roofIndex = layerIndex + 1; roofIndex <= layerIndex + Settings.RoofLayers; ++roofIndex)
-            {
+            for (var roofIndex = layerIndex + 1; roofIndex <= layerIndex + RoofLayers; ++roofIndex)
                 if (roofIndex < layerCount - 1)
-                {
                     yield return roofIndex;
-                }
-            }
-        }
-
-        protected static double OverhangAllowanceMM(SingleMaterialFFFSettings Settings)
-        {
-            // should be parameterizable? this is 45 degrees...  (is it? 45 if nozzlediam == layerheight...)
-            //double fOverhangAllowance = 0.5 * settings.NozzleDiamMM;
-            return Settings.LayerHeightMM / Math.Tan(45 * MathUtil.Deg2Rad) - (Settings.Shells + 0.5) * Settings.Machine.NozzleDiamMM;
         }
 
         /// <summary>
-        /// compute all the roof and floor areas for the entire stack, in parallel
+        ///     Compute the interior regions for infill for every layer
         /// </summary>
-        /// 
-        public List<GeneralPolygon2d>[] ComputeInteriorRegions(PlanarSliceStack SliceStack, SingleMaterialFFFSettings Settings, Func<bool> Cancelled, Action countProgressStep)
+        public List<GeneralPolygon2d>[] ComputeInteriorRegions(List<PlanarSlice> slices, Interval1i layerSolveInterval,
+            Func<bool> cancelled, Action countProgressStep)
         {
-            int nLayers = SliceStack.Count;
-            var layerInfillRegions = new List<GeneralPolygon2d>[nLayers];
+            var layerInfillRegions = new List<GeneralPolygon2d>[slices.Count];
 
-            int start_layer = Math.Max(0, Settings.LayerRangeFilter.a);
-            int end_layer = Math.Min(nLayers - 1, Settings.LayerRangeFilter.b);
-            Interval1i solve_roofs_floors = new Interval1i(start_layer, end_layer);
-
-            gParallel.ForEach(solve_roofs_floors, (layerIndex) => {
-                if (Cancelled()) return;
+            gParallel.ForEach(layerSolveInterval, layerIndex =>
+            {
+                if (cancelled()) return;
                 layerInfillRegions[layerIndex] = new List<GeneralPolygon2d>();
 
-                if (LayerCouldHaveInfill(Settings, layerIndex, nLayers))
-                {
-                    layerInfillRegions[layerIndex].AddRange(FindInteriorsForLayer(SliceStack.Slices, Settings, layerIndex));
-
-                }
+                if (LayerCouldHaveInfill(layerIndex, slices.Count))
+                    layerInfillRegions[layerIndex].AddRange(FindInteriorsForLayer(slices, layerIndex));
                 countProgressStep();
             });
             return layerInfillRegions;
         }
 
-        private List<GeneralPolygon2d> FindInteriorsForLayer(List<PlanarSlice> slices, SingleMaterialFFFSettings settings, int layerIndex)
+        /// <summary>
+        ///     Compute the interior regions for a layer
+        /// </summary>
+        /// <remarks>
+        ///     The interior is computed by taking the intersection of the neighboring N slices above and below
+        ///     the current layer. Any area that is contained on all the subset of layers around the current
+        ///     layer does not need to be solid. This area is then inset by a small distance to provide an anchor
+        ///     for solid fill.
+        /// </remarks>
+        private List<GeneralPolygon2d> FindInteriorsForLayer(List<PlanarSlice> slices, int layerIndex)
         {
             var interiorRegions = slices[layerIndex].Solids;
 
-            foreach (var i in Enumerable.Concat(
-                FloorLayerIndices(layerIndex, slices.Count, settings),
-                RoofLayerIndices(layerIndex, slices.Count, settings)))
-            {
-                interiorRegions = ClipperUtil.Intersection(interiorRegions, slices[i].Solids, MinimumArea(settings));
-            }
+            foreach (var i in FloorLayerIndices(layerIndex, slices.Count)
+                .Concat(RoofLayerIndices(layerIndex, slices.Count)))
+                interiorRegions = ClipperUtil.Intersection(interiorRegions, slices[i].Solids, MinimumArea);
 
-            return ClipperUtil.MiterOffset(interiorRegions, OverhangAllowanceMM(settings), MinimumArea(settings));
+            return ClipperUtil.MiterOffset(interiorRegions, -InfillInsetDistanceMM, MinimumArea);
         }
 
-        private static bool LayerCouldHaveInfill(SingleMaterialFFFSettings Settings, int layerIndex, int layerCount)
+        private bool LayerCouldHaveInfill(int layerIndex, int layerCount)
         {
-            return layerIndex >= Settings.FloorLayers && 
-                   layerIndex <= layerCount - Settings.RoofLayers;
-        }
-
-        private static double MinimumArea(SingleMaterialFFFSettings settings)
-        {
-            return Math.Pow(settings.Machine.NozzleDiamMM, 2);
+            return layerIndex >= FloorLayers &&
+                   layerIndex <= layerCount - RoofLayers;
         }
     }
 }
