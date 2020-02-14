@@ -255,22 +255,18 @@ namespace gs
         protected int TotalProgress = 1;
         protected int CurProgress = 0;
 
+        protected List<GeneralPolygon2d>[] LayerInfillRegions;
+
         protected virtual double LayerFillAngleF(int layer_i)
         {
-			//return 90;
-			//return (layer_i % 2 == 0) ? 0 : 90;
-                return (layer_i % 2 == 0) ? -45 : 45;
+            return (layer_i % 2 == 0) ? -45 : 45;
         }
 
         // start and end layers we will solve for (intersection of layercount and LayerRangeFilter)
         protected int CurStartLayer;
         protected int CurEndLayer;
 
-
-
-
-
-
+        
         /// <summary>
         /// This is the main driver of the slicing process
         /// </summary>
@@ -302,7 +298,7 @@ namespace gs
             int nLayers = Slices.Count;
 
             // compute roofs/floors in parallel based on shells
-            infillRegionGenerator.precompute_roofs_floors(Slices, Settings, CancelF, count_progress_step);
+            LayerInfillRegions = infillRegionGenerator.ComputeInteriorRegions(Slices, Settings, CancelF, count_progress_step);
             if (Cancelled()) return;
 
             // compute solid/sparse in parallel based on shell interios, roofs & floors
@@ -464,7 +460,6 @@ namespace gs
             // TODO: May need to force Build.EndLine() somehow if losing the end
         }
 
-        
         /// <summary>
         /// assemble Settings for a given layer.
         /// </summary>
@@ -798,19 +793,16 @@ namespace gs
         /// need to be filled, and the roof/floor areas above/below this layer. 
         /// </summary>
         protected virtual List<GeneralPolygon2d> make_infill_regions(int layer_i, 
-		                                                     List<GeneralPolygon2d> fillRegions, 
-                                                             List<GeneralPolygon2d> roof_cover, 
-                                                             List<GeneralPolygon2d> floor_cover, 
+		                                                     List<GeneralPolygon2d> shellInteriors, 
+                                                             List<GeneralPolygon2d> infillRegions,
                                                              out List<GeneralPolygon2d> solid_regions)
                                                             
         {
             double min_area = Settings.Machine.NozzleDiamMM * Settings.Machine.NozzleDiamMM;
 
-            List<GeneralPolygon2d> infillPolys = fillRegions;
+            List<GeneralPolygon2d> infillPolys = shellInteriors;
 
-            List<GeneralPolygon2d> roofPolys = ClipperUtil.Difference(fillRegions, roof_cover, min_area);
-            List<GeneralPolygon2d> floorPolys = ClipperUtil.Difference(fillRegions, floor_cover, min_area);
-            solid_regions = ClipperUtil.Union(roofPolys, floorPolys, min_area);
+            solid_regions = ClipperUtil.Difference(shellInteriors, infillRegions, min_area);
             if (solid_regions == null)
                 solid_regions = new List<GeneralPolygon2d>();
 
@@ -980,9 +972,6 @@ namespace gs
         {
             bool is_infill = (layer_i >= Settings.FloorLayers && layer_i < Slices.Count - Settings.RoofLayers);
 
-            List<GeneralPolygon2d> roof_cover = infillRegionGenerator.get_layer_roof_area(layer_i);
-            List<GeneralPolygon2d> floor_cover = infillRegionGenerator.get_layer_floor_area(layer_i);
-
             var regions = new ShellFillRegionDict();
 
             foreach (var shell in LayerShells[layer_i])
@@ -990,7 +979,7 @@ namespace gs
                 List<GeneralPolygon2d> solid_fill_regions = shell.GetInnerPolygons();
                 List<GeneralPolygon2d> infill_regions = new List<GeneralPolygon2d>();
                 if (is_infill)
-                    infill_regions = make_infill_regions(layer_i, solid_fill_regions, roof_cover, floor_cover, out solid_fill_regions);
+                    infill_regions = make_infill_regions(layer_i, solid_fill_regions, LayerInfillRegions[layer_i], out solid_fill_regions);
 
                 regions[shell] = new FillRegions(solid_fill_regions, infill_regions);
             }

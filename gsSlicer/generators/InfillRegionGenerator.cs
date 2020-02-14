@@ -1,84 +1,32 @@
-﻿using System;
+﻿using g3;
+using System;
 using System.Collections.Generic;
-using System.Text;
-using g3;
+using System.Linq;
 
 namespace gs.generators
 {
     public class InfillRegionGenerator
     {
-        private List<GeneralPolygon2d>[] LayerRoofAreas;
-        private List<GeneralPolygon2d>[] LayerFloorAreas;
-
-        /// <summary>
-        /// return the set of roof polygons for a layer
-        /// </summary>
-        public virtual List<GeneralPolygon2d> get_layer_roof_area(int layer_i)
+        protected virtual IEnumerable<int> FloorLayerIndices(int layerIndex, int layerCount, SingleMaterialFFFSettings Settings)
         {
-            return LayerRoofAreas[layer_i];
-        }
-
-        /// <summary>
-        /// return the set of floor polygons for a layer
-        /// </summary>
-        public virtual List<GeneralPolygon2d> get_layer_floor_area(int layer_i)
-        {
-            return LayerFloorAreas[layer_i];
-        }
-
-        /// <summary>
-        /// construct region that needs to be solid for "roofs".
-        /// This is the intersection of infill polygons for the next N layers.
-        /// </summary>
-        protected virtual List<GeneralPolygon2d> find_roof_areas_for_layer(int layer_i, List<PlanarSlice> slices, SingleMaterialFFFSettings Settings)
-        {
-            double min_area = Settings.Machine.NozzleDiamMM * Settings.Machine.NozzleDiamMM;
-
-            List<GeneralPolygon2d> roof_cover = new List<GeneralPolygon2d>(slices[layer_i + 1].Solids);
-
-            // If we want > 1 roof layer, we need to look further ahead.
-            // The full area we need to print as "roof" is the infill minus
-            // the intersection of the infill areas above
-            for (int k = 2; k <= Settings.RoofLayers; ++k)
+            for (int floorIndex = layerIndex - Settings.FloorLayers; floorIndex < layerIndex; ++floorIndex)
             {
-                int ri = layer_i + k;
-                if (ri < slices.Count)
+                if (floorIndex >= 0)
                 {
-                    List<GeneralPolygon2d> infillN = new List<GeneralPolygon2d>(slices[ri].Solids);
-                    roof_cover = ClipperUtil.Intersection(roof_cover, infillN, min_area);
+                    yield return floorIndex;
                 }
             }
-
-            // add overhang allowance. Technically any non-vertical surface will result in
-            // non-empty roof regions. However we do not need to explicitly support roofs
-            // until they are "too horizontal". 
-            var result = ClipperUtil.MiterOffset(roof_cover, OverhangAllowanceMM(Settings), min_area);
-            return result;
         }
 
-        /// <summary>
-        /// construct region that needs to be solid for "floors"
-        /// </summary>
-        protected virtual List<GeneralPolygon2d> find_floor_areas_for_layer(int layer_i, List<PlanarSlice> slices,  SingleMaterialFFFSettings Settings)
+        protected virtual IEnumerable<int> RoofLayerIndices(int layerIndex, int layerCount, SingleMaterialFFFSettings Settings)
         {
-            double min_area = Settings.Machine.NozzleDiamMM * Settings.Machine.NozzleDiamMM;
-
-            List<GeneralPolygon2d> floor_cover = new List<GeneralPolygon2d>(slices[layer_i - 1].Solids);
-
-            // If we want > 1 floor layer, we need to look further back.
-            for (int k = 2; k <= Settings.FloorLayers; ++k)
+            for (int roofIndex = layerIndex + 1; roofIndex <= layerIndex + Settings.RoofLayers; ++roofIndex)
             {
-                int ri = layer_i - k;
-                if (ri >= 0)
+                if (roofIndex < layerCount - 1)
                 {
-                    List<GeneralPolygon2d> infillN = new List<GeneralPolygon2d>(slices[ri].Solids);
-                    floor_cover = ClipperUtil.Intersection(floor_cover, infillN, min_area);
+                    yield return roofIndex;
                 }
             }
-
-            // add overhang allowance. 
-            var result = ClipperUtil.MiterOffset(floor_cover, OverhangAllowanceMM(Settings), min_area);
-            return result;
         }
 
         protected static double OverhangAllowanceMM(SingleMaterialFFFSettings Settings)
@@ -92,46 +40,52 @@ namespace gs.generators
         /// compute all the roof and floor areas for the entire stack, in parallel
         /// </summary>
         /// 
-        public void precompute_roofs_floors(PlanarSliceStack SliceStack, SingleMaterialFFFSettings Settings, Func<bool> Cancelled, Action countProgressStep)
+        public List<GeneralPolygon2d>[] ComputeInteriorRegions(PlanarSliceStack SliceStack, SingleMaterialFFFSettings Settings, Func<bool> Cancelled, Action countProgressStep)
         {
             int nLayers = SliceStack.Count;
-            LayerRoofAreas = new List<GeneralPolygon2d>[nLayers];
-            LayerFloorAreas = new List<GeneralPolygon2d>[nLayers];
+            var layerInfillRegions = new List<GeneralPolygon2d>[nLayers];
 
             int start_layer = Math.Max(0, Settings.LayerRangeFilter.a);
             int end_layer = Math.Min(nLayers - 1, Settings.LayerRangeFilter.b);
             Interval1i solve_roofs_floors = new Interval1i(start_layer, end_layer);
-            gParallel.ForEach(solve_roofs_floors, (layer_i) => {
+
+            gParallel.ForEach(solve_roofs_floors, (layerIndex) => {
                 if (Cancelled()) return;
-                bool is_infill = (layer_i >= Settings.FloorLayers && layer_i < nLayers - Settings.RoofLayers);
+                layerInfillRegions[layerIndex] = new List<GeneralPolygon2d>();
 
-                if (is_infill)
+                if (LayerCouldHaveInfill(Settings, layerIndex, nLayers))
                 {
-                    if (Settings.RoofLayers > 0)
-                    {
-                        LayerRoofAreas[layer_i] = find_roof_areas_for_layer(layer_i, SliceStack.Slices, Settings);
-                    }
-                    else
-                    {
-                        LayerRoofAreas[layer_i] = find_roof_areas_for_layer(layer_i - 1, SliceStack.Slices, Settings);     // will return "our" layer
-                    }
-                    if (Settings.FloorLayers > 0)
-                    {
-                        LayerFloorAreas[layer_i] = find_floor_areas_for_layer(layer_i, SliceStack.Slices, Settings);
-                    }
-                    else
-                    {
-                        LayerFloorAreas[layer_i] = find_floor_areas_for_layer(layer_i + 1, SliceStack.Slices, Settings);   // will return "our" layer
-                    }
-                }
-                else
-                {
-                    LayerRoofAreas[layer_i] = new List<GeneralPolygon2d>();
-                    LayerFloorAreas[layer_i] = new List<GeneralPolygon2d>();
-                }
+                    layerInfillRegions[layerIndex].AddRange(FindInteriorsForLayer(SliceStack.Slices, Settings, layerIndex));
 
+                }
                 countProgressStep();
             });
+            return layerInfillRegions;
+        }
+
+        private List<GeneralPolygon2d> FindInteriorsForLayer(List<PlanarSlice> slices, SingleMaterialFFFSettings settings, int layerIndex)
+        {
+            var interiorRegions = slices[layerIndex].Solids;
+
+            foreach (var i in Enumerable.Concat(
+                FloorLayerIndices(layerIndex, slices.Count, settings),
+                RoofLayerIndices(layerIndex, slices.Count, settings)))
+            {
+                interiorRegions = ClipperUtil.Intersection(interiorRegions, slices[i].Solids, MinimumArea(settings));
+            }
+
+            return ClipperUtil.MiterOffset(interiorRegions, OverhangAllowanceMM(settings), MinimumArea(settings));
+        }
+
+        private static bool LayerCouldHaveInfill(SingleMaterialFFFSettings Settings, int layerIndex, int layerCount)
+        {
+            return layerIndex >= Settings.FloorLayers && 
+                   layerIndex <= layerCount - Settings.RoofLayers;
+        }
+
+        private static double MinimumArea(SingleMaterialFFFSettings settings)
+        {
+            return Math.Pow(settings.Machine.NozzleDiamMM, 2);
         }
     }
 }
