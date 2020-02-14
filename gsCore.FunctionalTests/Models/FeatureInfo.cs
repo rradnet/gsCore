@@ -20,9 +20,9 @@ namespace gsCore.FunctionalTests.Models
         
         protected static double boundingBoxTolerance = 1e-1;
         protected double centerOfMassTolerance = 1e-1;
-        protected double extrusionTolerance = 1e-1;
-        protected double distanceTolerance = 1e-1;
-        protected double durationTolerance = 1e-1;
+        protected double extrusionTolerance = 1.5;
+        protected double distanceTolerance = 1.5;
+        protected double durationTolerance = 1;
 
         public FeatureInfo(FillTypeFlags fillType)
         {

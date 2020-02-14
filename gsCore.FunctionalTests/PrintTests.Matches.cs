@@ -110,6 +110,7 @@ namespace gsCore.FunctionalTests
                 Shells = 1,
                 FloorLayers = 3,
                 RoofLayers = 3,
+                WallThicknessMM = 0.4,
             });
 
             // Act

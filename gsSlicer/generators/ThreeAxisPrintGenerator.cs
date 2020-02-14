@@ -122,7 +122,7 @@ namespace gs
                 FloorLayers = settings.FloorLayers,
                 RoofLayers = settings.RoofLayers,
                 MinimumArea = Math.Pow(settings.Machine.NozzleDiamMM, 2),
-                InfillInsetDistanceMM = 2 * settings.Machine.NozzleDiamMM,
+                InfillInsetDistanceMM = settings.WallThicknessMM,
             };
 
         // Replace this if you want to customize PrintLayerData type

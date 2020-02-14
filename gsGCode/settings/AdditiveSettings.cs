@@ -285,6 +285,8 @@ namespace gs
         [JsonProperty]
         private int LayerRangeFilterMin { get { return LayerRangeFilter.a; } set { LayerRangeFilter.a = value; } }
         private int LayerRangeFilterMax { get { return LayerRangeFilter.b; } set { LayerRangeFilter.b = value; } }
+ 
+        public double WallThicknessMM { get; set; } = 0.8;
 
         /*
          * functions that calculate derived values
