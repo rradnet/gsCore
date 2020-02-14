@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading;
 using g3;
+using gs.generators;
 
 namespace gs
 {
@@ -115,6 +116,8 @@ namespace gs
         // will be set to true if CancelF() ever returns true
         public bool WasCancelled = false;
 
+
+        private InfillRegionGenerator infillRegionGenerator = new InfillRegionGenerator();
 
         // Replace this if you want to customize PrintLayerData type
         public Func<int, PlanarSlice, SingleMaterialFFFSettings, PrintLayerData> PrintLayerDataFactoryF;
@@ -252,8 +255,6 @@ namespace gs
         protected int TotalProgress = 1;
         protected int CurProgress = 0;
 
-        // [TODO] these should be moved to settings, or something?
-        protected double OverhangAllowanceMM;
         protected virtual double LayerFillAngleF(int layer_i)
         {
 			//return 90;
@@ -275,10 +276,6 @@ namespace gs
         /// </summary>
         protected virtual void generate_result()
         {
-            // should be parameterizable? this is 45 degrees...  (is it? 45 if nozzlediam == layerheight...)
-            //double fOverhangAllowance = 0.5 * settings.NozzleDiamMM;
-            OverhangAllowanceMM = Settings.LayerHeightMM / Math.Tan(45 * MathUtil.Deg2Rad);
-
             int NProgressStepsPerLayer = 10;
             TotalProgress = NProgressStepsPerLayer * (Slices.Count - 1);
             CurProgress = 0;
@@ -305,7 +302,7 @@ namespace gs
             int nLayers = Slices.Count;
 
             // compute roofs/floors in parallel based on shells
-            precompute_roofs_floors();
+            infillRegionGenerator.precompute_roofs_floors(Slices, Settings, CancelF, count_progress_step);
             if (Cancelled()) return;
 
             // compute solid/sparse in parallel based on shell interios, roofs & floors
@@ -833,79 +830,6 @@ namespace gs
             return infillPolys;
         }
 
-
-
-
-        /// <summary>
-        /// construct region that needs to be solid for "roofs".
-        /// This is the intersection of infill polygons for the next N layers.
-        /// </summary>
-        protected virtual List<GeneralPolygon2d> find_roof_areas_for_layer(int layer_i)
-        {
-            double min_area = Settings.Machine.NozzleDiamMM * Settings.Machine.NozzleDiamMM;
-
-            List<GeneralPolygon2d> roof_cover = new List<GeneralPolygon2d>();
-
-            foreach (IShellsFillPolygon shells in get_layer_shells(layer_i + 1))
-                roof_cover.AddRange(shells.GetInnerPolygons());
-
-            // If we want > 1 roof layer, we need to look further ahead.
-            // The full area we need to print as "roof" is the infill minus
-            // the intersection of the infill areas above
-            for (int k = 2; k <= Settings.RoofLayers; ++k) {
-                int ri = layer_i + k;
-                if (ri < LayerShells.Length) {
-                    List<GeneralPolygon2d> infillN = new List<GeneralPolygon2d>();
-                    foreach (IShellsFillPolygon shells in get_layer_shells(ri))
-                        infillN.AddRange(shells.GetInnerPolygons());
-
-                    roof_cover = ClipperUtil.Intersection(roof_cover, infillN, min_area);
-                }
-            }
-
-            // add overhang allowance. Technically any non-vertical surface will result in
-            // non-empty roof regions. However we do not need to explicitly support roofs
-            // until they are "too horizontal". 
-            var result = ClipperUtil.MiterOffset(roof_cover, OverhangAllowanceMM, min_area);
-            return result;
-        }
-
-
-
-
-        /// <summary>
-        /// construct region that needs to be solid for "floors"
-        /// </summary>
-        protected virtual List<GeneralPolygon2d> find_floor_areas_for_layer(int layer_i)
-        {
-            double min_area = Settings.Machine.NozzleDiamMM * Settings.Machine.NozzleDiamMM;
-
-            List<GeneralPolygon2d> floor_cover = new List<GeneralPolygon2d>();
-
-            foreach (IShellsFillPolygon shells in get_layer_shells(layer_i - 1))
-                floor_cover.AddRange(shells.GetInnerPolygons());
-
-            // If we want > 1 floor layer, we need to look further back.
-            for (int k = 2; k <= Settings.FloorLayers; ++k) {
-                int ri = layer_i - k;
-                if (ri >= 0)
-                {
-                    List<GeneralPolygon2d> infillN = new List<GeneralPolygon2d>();
-                    foreach (IShellsFillPolygon shells in get_layer_shells(ri))
-                        infillN.AddRange(shells.GetInnerPolygons());
-
-                    floor_cover = ClipperUtil.Intersection(floor_cover, infillN, min_area);
-                }
-            }
-
-            // add overhang allowance. 
-            var result = ClipperUtil.MiterOffset(floor_cover, OverhangAllowanceMM, min_area);
-            return result;
-        }
-
-
-
-
         /// <summary>
         /// schedule any non-polygonal paths for the given layer (eg paths
         /// that resulted from open meshes, for example)
@@ -934,12 +858,6 @@ namespace gs
 
             scheduler.AppendCurveSets(new List<FillCurveSet2d>() { paths });
         }
-
-
-
-
-
-
 
 
         // The set of perimeter fills for each layer. 
@@ -1023,66 +941,6 @@ namespace gs
         }
 
 
-
-
-
-
-        protected List<GeneralPolygon2d>[] LayerRoofAreas;
-        protected List<GeneralPolygon2d>[] LayerFloorAreas;
-
-
-        /// <summary>
-        /// return the set of roof polygons for a layer
-        /// </summary>
-		protected virtual List<GeneralPolygon2d> get_layer_roof_area(int layer_i)
-        {
-            return LayerRoofAreas[layer_i];
-        }
-
-        /// <summary>
-        /// return the set of floor polygons for a layer
-        /// </summary>
-		protected virtual List<GeneralPolygon2d> get_layer_floor_area(int layer_i)
-        {
-            return LayerFloorAreas[layer_i];
-        }
-
-        /// <summary>
-        /// compute all the roof and floor areas for the entire stack, in parallel
-        /// </summary>
-        protected virtual void precompute_roofs_floors()
-        {
-            int nLayers = Slices.Count;
-            LayerRoofAreas = new List<GeneralPolygon2d>[nLayers];
-            LayerFloorAreas = new List<GeneralPolygon2d>[nLayers];
-
-            int start_layer = Math.Max(0, Settings.LayerRangeFilter.a);
-            int end_layer = Math.Min(nLayers - 1, Settings.LayerRangeFilter.b);
-            Interval1i solve_roofs_floors = new Interval1i(start_layer, end_layer);
-            gParallel.ForEach(solve_roofs_floors, (layer_i) => {
-                if (Cancelled()) return;
-                bool is_infill = (layer_i >= Settings.FloorLayers && layer_i < nLayers - Settings.RoofLayers);
-
-                if (is_infill) {
-                    if (Settings.RoofLayers > 0) {
-                        LayerRoofAreas[layer_i] = find_roof_areas_for_layer(layer_i);
-                    } else {
-                        LayerRoofAreas[layer_i] = find_roof_areas_for_layer(layer_i - 1);     // will return "our" layer
-                    }
-                    if (Settings.FloorLayers > 0) {
-                        LayerFloorAreas[layer_i] = find_floor_areas_for_layer(layer_i);
-                    } else {
-                        LayerFloorAreas[layer_i] = find_floor_areas_for_layer(layer_i + 1);   // will return "our" layer
-                    }
-                } else {
-                    LayerRoofAreas[layer_i] = new List<GeneralPolygon2d>();
-                    LayerFloorAreas[layer_i] = new List<GeneralPolygon2d>();
-                }
-
-                count_progress_step();
-            });
-        }
-
         // Each entry in the list has a collection of FillRegion objects for the layer.
         // The FillRegions are stored in a dictionary with a ShellsFillPolygon as the key 
         // so the correct ones for each individual shell can be retrieved, rather than getting
@@ -1122,8 +980,8 @@ namespace gs
         {
             bool is_infill = (layer_i >= Settings.FloorLayers && layer_i < Slices.Count - Settings.RoofLayers);
 
-            List<GeneralPolygon2d> roof_cover = get_layer_roof_area(layer_i);
-            List<GeneralPolygon2d> floor_cover = get_layer_floor_area(layer_i);
+            List<GeneralPolygon2d> roof_cover = infillRegionGenerator.get_layer_roof_area(layer_i);
+            List<GeneralPolygon2d> floor_cover = infillRegionGenerator.get_layer_floor_area(layer_i);
 
             var regions = new ShellFillRegionDict();
 
