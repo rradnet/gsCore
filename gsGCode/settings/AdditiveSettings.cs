@@ -273,6 +273,7 @@ namespace gs
         public double MinLayerTime = 5.0;                // minimum layer time in seconds
         public bool ClipSelfOverlaps = false;            // if true, try to remove portions of toolpaths that will self-overlap
         public double SelfOverlapToleranceX = 0.75;      // what counts as 'self-overlap'. this is a multiplier on NozzleDiamMM
+        public double MinInfillLengthMM = 2.0;
 
         /*
          * Debug/Utility options

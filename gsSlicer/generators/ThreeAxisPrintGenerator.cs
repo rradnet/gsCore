@@ -519,7 +519,8 @@ namespace gs
                 InsetFromInputPolygon = false,
                 PathSpacing = Settings.SparseLinearInfillStepX * Settings.SolidFillPathSpacingMM(),
                 ToolWidth = Settings.Machine.NozzleDiamMM,
-				AngleDeg = LayerFillAngleF(layer_data.layer_i)
+				AngleDeg = LayerFillAngleF(layer_data.layer_i),
+                MinPathLengthMM = Settings.MinInfillLengthMM
             };
             infill_gen.Compute();
 
@@ -703,7 +704,8 @@ namespace gs
                 PathSpacing = Settings.SolidFillPathSpacingMM(),
                 ToolWidth = Settings.Machine.NozzleDiamMM,
                 AngleDeg = LayerFillAngleF(layer_data.layer_i),
-                    FilterSelfOverlaps = Settings.ClipSelfOverlaps
+                    FilterSelfOverlaps = Settings.ClipSelfOverlaps,
+                MinPathLengthMM = Settings.MinInfillLengthMM
             };
 
             solid_gen.Compute();
@@ -1012,6 +1014,8 @@ namespace gs
             shells_gen.Layers = Settings.Shells;
             shells_gen.FilterSelfOverlaps = Settings.ClipSelfOverlaps;
             shells_gen.SelfOverlapTolerance = Settings.SelfOverlapToleranceX * Settings.Machine.NozzleDiamMM;
+            shells_gen.DiscardTinyPerimterLengthMM = Settings.Machine.NozzleDiamMM * 2.5;
+            shells_gen.DiscardTinyPolygonAreaMM2 = Settings.Machine.NozzleDiamMM * Settings.Machine.NozzleDiamMM * 6.25;
             shells_gen.OuterShellLast = Settings.OuterShellLast;
 
             shells_gen.Compute();

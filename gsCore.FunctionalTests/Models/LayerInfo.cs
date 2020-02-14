@@ -1,10 +1,18 @@
-﻿using System.Collections.Generic;
-using gs;
+﻿using gs;
+using gsCore.FunctionalTests.Utility;
+using System.Collections.Generic;
 
 namespace gsCore.FunctionalTests.Models
 {
     public class LayerInfo<TFeatureInfo> where TFeatureInfo : IFeatureInfo
     {
+        private readonly ILogger logger;
+
+        public LayerInfo(ILogger logger)
+        {
+            this.logger = logger;
+        }
+
         private readonly Dictionary<FillTypeFlags, TFeatureInfo> perFeatureInfo =
             new Dictionary<FillTypeFlags, TFeatureInfo>();
 
@@ -20,6 +28,7 @@ namespace gsCore.FunctionalTests.Models
 
             foreach (var fillType in perFeatureInfo.Keys)
             {
+                logger.WriteLine($"\t{fillType}");
                 perFeatureInfo[fillType].AssertEqualsExpected(expected.perFeatureInfo[fillType]);
             }
         }
