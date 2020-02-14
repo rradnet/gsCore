@@ -33,7 +33,7 @@ namespace gs
         public double ToolWidth = 0.4;
 		public double PathSpacing = 0.4; 
 
-		public double DiscardTinyPerimterLengthMM = 1.0;
+		public double DiscardTinyPerimeterLengthMM = 1.0;
 		public double DiscardTinyPolygonAreaMM2 = 1.0;
 
 		// When offsets collide, we try to find polyline paths that will "fit"
@@ -141,7 +141,7 @@ namespace gs
 
 					List<GeneralPolygon2d> filtered = new List<GeneralPolygon2d>();
 					foreach (var v in offsets) {
-						bool bTooSmall = (v.Perimeter < DiscardTinyPerimterLengthMM ||
+						bool bTooSmall = (v.Perimeter < DiscardTinyPerimeterLengthMM ||
 										  v.Area < DiscardTinyPolygonAreaMM2);
 						if (bTooSmall)
 							continue;
@@ -166,7 +166,7 @@ namespace gs
             // failedShells have no space for internal contours. But 
             // we might be able to fit a single line...
             //foreach (GeneralPolygon2d gpoly in failedShells) {
-            //	if (gpoly.Perimeter < DiscardTinyPerimterLengthMM ||
+            //	if (gpoly.Perimeter < DiscardTinyPerimeterLengthMM ||
             //		 gpoly.Area < DiscardTinyPolygonAreaMM2)
             //		continue;
 
@@ -314,9 +314,9 @@ namespace gs
 					paths.Append(polygon, flags);
                 }
                 foreach (var polyline in c.Paths) {
-                    if (polyline.ArcLength < DiscardTinyPerimterLengthMM)
+                    if (polyline.ArcLength < DiscardTinyPerimeterLengthMM)
                         continue;
-                    if (polyline.Bounds.MaxDim < DiscardTinyPerimterLengthMM)
+                    if (polyline.Bounds.MaxDim < DiscardTinyPerimeterLengthMM)
                         continue;
 					paths.Append(new FillPolyline2d(polyline) { TypeFlags = flags } );
                 }

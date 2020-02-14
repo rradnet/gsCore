@@ -575,7 +575,7 @@ namespace gs
                 //shells_gen.PreserveOuterShells = false;
                 //shells_gen.SelfOverlapTolerance = Settings.SelfOverlapToleranceX * Settings.Machine.NozzleDiamMM;
 				shells_gen.DiscardTinyPolygonAreaMM2 = 0.1;
-				shells_gen.DiscardTinyPerimterLengthMM = 0.0;
+				shells_gen.DiscardTinyPerimeterLengthMM = 0.0;
                 shells_gen.Compute();
                 List<FillCurveSet2d> shell_fill_curves = shells_gen.GetFillCurves();
                 foreach (var fillpath in shell_fill_curves)
@@ -1014,7 +1014,7 @@ namespace gs
             shells_gen.Layers = Settings.Shells;
             shells_gen.FilterSelfOverlaps = Settings.ClipSelfOverlaps;
             shells_gen.SelfOverlapTolerance = Settings.SelfOverlapToleranceX * Settings.Machine.NozzleDiamMM;
-            shells_gen.DiscardTinyPerimterLengthMM = Settings.Machine.NozzleDiamMM * 2.5;
+            shells_gen.DiscardTinyPerimeterLengthMM = Settings.Machine.NozzleDiamMM * 2.5;
             shells_gen.DiscardTinyPolygonAreaMM2 = Settings.Machine.NozzleDiamMM * Settings.Machine.NozzleDiamMM * 6.25;
             shells_gen.OuterShellLast = Settings.OuterShellLast;
 
