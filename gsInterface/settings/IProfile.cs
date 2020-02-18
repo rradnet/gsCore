@@ -5,6 +5,7 @@
         string ManufacturerName { get; set; }
         string ModelIdentifier { get; set; }
         string ProfileName { get; set; }
+        string MaterialName { get; }
 
         double MachineBedSizeXMM { get; }
         double MachineBedSizeYMM { get; }

@@ -5,6 +5,33 @@ namespace gs.engines
 {
     public class MaterialUserSettingsFFF<TSettings> : UserSettingCollection<TSettings> where TSettings : SingleMaterialFFFSettings
     {
+        #region Identifiers
+
+        public static readonly UserSettingGroup GroupMaterialIdentifiers =
+            new UserSettingGroup(() => UserSettingTranslations.GroupMaterialIdentifiers);
+
+        public UserSettingString<TSettings> MaterialType = new UserSettingString<TSettings>(
+            () => UserSettingTranslations.MaterialType_Name,
+            () => UserSettingTranslations.MaterialType_Description,
+            GroupMaterialIdentifiers,
+            (settings) => settings.MaterialType,
+            (settings, val) => settings.MaterialType = val);
+
+        public UserSettingString<TSettings> MaterialSource = new UserSettingString<TSettings>(
+            () => UserSettingTranslations.MaterialSource_Name,
+            () => UserSettingTranslations.MaterialSource_Description,
+            GroupMaterialIdentifiers,
+            (settings) => settings.MaterialSource,
+            (settings, val) => settings.MaterialSource = val);
+        public UserSettingString<TSettings> MaterialColor = new UserSettingString<TSettings>(
+            () => UserSettingTranslations.MaterialColor_Name,
+            () => UserSettingTranslations.MaterialColor_Description,
+            GroupMaterialIdentifiers,
+            (settings) => settings.MaterialColor,
+            (settings, val) => settings.MaterialColor = val);
+
+        #endregion
+
         #region Basic
 
         public static readonly UserSettingGroup GroupBasic =

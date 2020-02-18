@@ -246,6 +246,9 @@
   <data name="GroupIdentifiers" xml:space="preserve">
     <value>Make &amp; Model</value>
   </data>
+  <data name="GroupMaterialIdentifiers" xml:space="preserve">
+    <value>Material Identifiers</value>
+  </data>
   <data name="GroupMiscellaneous" xml:space="preserve">
     <value>Miscellaneous</value>
   </data>
@@ -292,10 +295,10 @@
     <value>Bed Temperature (°C)</value>
   </data>
   <data name="Identifier.Description" xml:space="preserve">
-    <value />
+    <value>Short description of the print profile</value>
   </data>
   <data name="Identifier.Name" xml:space="preserve">
-    <value>Identifier</value>
+    <value>Profile Name</value>
   </data>
   <data name="InteriorSolidRegionShells.Description" xml:space="preserve">
     <value />
@@ -320,6 +323,24 @@
   </data>
   <data name="ManufacturerUUID.Name" xml:space="preserve">
     <value>Manufacturer UUID</value>
+  </data>
+  <data name="MaterialColor.Description" xml:space="preserve">
+    <value>Filament color</value>
+  </data>
+  <data name="MaterialColor.Name" xml:space="preserve">
+    <value>Color</value>
+  </data>
+  <data name="MaterialSource.Description" xml:space="preserve">
+    <value>Filament material supplier</value>
+  </data>
+  <data name="MaterialSource.Name" xml:space="preserve">
+    <value>Vendor</value>
+  </data>
+  <data name="MaterialType.Description" xml:space="preserve">
+    <value>Filament material type (PLA, ABS, TPU, etc.)</value>
+  </data>
+  <data name="MaterialType.Name" xml:space="preserve">
+    <value>Type</value>
   </data>
   <data name="MaxBedTempC.Description" xml:space="preserve">
     <value />

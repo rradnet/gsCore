@@ -25,6 +25,13 @@ namespace gs.engines
         public static readonly UserSettingGroup GroupBasic =
             new UserSettingGroup(() => UserSettingTranslations.GroupBasic);
 
+        public UserSettingString<TSettings> Identifier = new UserSettingString<TSettings>(
+            () => UserSettingTranslations.Identifier_Name,
+            () => UserSettingTranslations.Identifier_Description,
+            GroupBasic,
+            (settings) => settings.Identifier,
+            (settings, val) => settings.Identifier = val);
+
         public UserSettingBool<TSettings> EnableBridging = new UserSettingBool<TSettings>(
             () => UserSettingTranslations.EnableBridging_Name,
             () => UserSettingTranslations.EnableBridging_Description,
@@ -148,70 +155,6 @@ namespace gs.engines
             (settings) => settings.StartLayers,
             (settings, val) => settings.StartLayers = val,
             UserSettingNumericValidations<int>.ValidateMin(0, ValidationResult.Level.Error));
-
-        #endregion
-        
-        #region Hidden
-
-        public static readonly UserSettingGroup GroupHidden =
-            new UserSettingGroup(() => UserSettingTranslations.GroupHidden);
-
-        public UserSettingString<TSettings> ManufacturerName = new UserSettingString<TSettings>(
-            () => UserSettingTranslations.ManufacturerName_Name,
-            () => UserSettingTranslations.ManufacturerName_Description,
-            GroupHidden,
-            (settings) => settings.Machine.ManufacturerName,
-            (settings, val) => settings.Machine.ManufacturerName = val);
-
-        public UserSettingString<TSettings> ManufacturerUUID = new UserSettingString<TSettings>(
-            () => UserSettingTranslations.ManufacturerUUID_Name,
-            () => UserSettingTranslations.ManufacturerUUID_Description,
-            GroupHidden,
-            (settings) => settings.Machine.ManufacturerUUID,
-            (settings, val) => settings.Machine.ManufacturerUUID = val);
-
-        public UserSettingString<TSettings> ModelIdentifier = new UserSettingString<TSettings>(
-            () => UserSettingTranslations.ModelIdentifier_Name,
-            () => UserSettingTranslations.ModelIdentifier_Description,
-            GroupHidden,
-            (settings) => settings.Machine.ModelIdentifier,
-            (settings, val) => settings.Machine.ModelIdentifier = val);
-
-        public UserSettingString<TSettings> ModelUUID = new UserSettingString<TSettings>(
-            () => UserSettingTranslations.ModelUUID_Name,
-            () => UserSettingTranslations.ModelUUID_Description,
-            GroupHidden,
-            (settings) => settings.Machine.ModelUUID,
-            (settings, val) => settings.Machine.ModelUUID = val);
-
-        public UserSettingString<TSettings> Class = new UserSettingString<TSettings>(
-            () => UserSettingTranslations.Class_Name,
-            () => UserSettingTranslations.Class_Description,
-            GroupHidden,
-            (settings) => settings.Machine.Class.ToString(),
-            (settings, val) => settings.Machine.Class = (MachineClass)System.Enum.Parse(typeof(MachineClass), val));
-
-        public UserSettingString<TSettings> ClassTypeName = new UserSettingString<TSettings>(
-            () => UserSettingTranslations.ClassTypeName_Name,
-            () => UserSettingTranslations.ClassTypeName_Description,
-            GroupHidden,
-            (settings) => settings.ClassTypeName,
-            (settings, val) => throw new System.Exception("ClassTypeName is read-only!"));
-
-        public UserSettingString<TSettings> Identifier = new UserSettingString<TSettings>(
-            () => UserSettingTranslations.Identifier_Name,
-            () => UserSettingTranslations.Identifier_Description,
-            GroupHidden,
-            (settings) => settings.Identifier,
-            (settings, val) => settings.Identifier = val);
-
-        public UserSettingDouble<TSettings> MinPointSpacingMM = new UserSettingDouble<TSettings>(
-            () => UserSettingTranslations.MinPointSpacingMM_Name,
-            () => UserSettingTranslations.MinPointSpacingMM_Description,
-            GroupHidden,
-            (settings) => settings.Machine.MinPointSpacingMM,
-            (settings, val) => settings.Machine.MinPointSpacingMM = val,
-            UserSettingNumericValidations<double>.ValidateMin(0, ValidationResult.Level.Error));
 
         #endregion
         

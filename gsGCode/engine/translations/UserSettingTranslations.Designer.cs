@@ -448,6 +448,15 @@ namespace gs.engines {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Material Identifiers.
+        /// </summary>
+        internal static string GroupMaterialIdentifiers {
+            get {
+                return ResourceManager.GetString("GroupMaterialIdentifiers", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Miscellaneous.
         /// </summary>
         internal static string GroupMiscellaneous {
@@ -583,7 +592,7 @@ namespace gs.engines {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to .
+        ///   Looks up a localized string similar to Short description of the print profile.
         /// </summary>
         internal static string Identifier_Description {
             get {
@@ -592,7 +601,7 @@ namespace gs.engines {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Identifier.
+        ///   Looks up a localized string similar to Profile Name.
         /// </summary>
         internal static string Identifier_Name {
             get {
@@ -669,6 +678,60 @@ namespace gs.engines {
         internal static string ManufacturerUUID_Name {
             get {
                 return ResourceManager.GetString("ManufacturerUUID.Name", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Filament color.
+        /// </summary>
+        internal static string MaterialColor_Description {
+            get {
+                return ResourceManager.GetString("MaterialColor.Description", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Color.
+        /// </summary>
+        internal static string MaterialColor_Name {
+            get {
+                return ResourceManager.GetString("MaterialColor.Name", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Filament material supplier.
+        /// </summary>
+        internal static string MaterialSource_Description {
+            get {
+                return ResourceManager.GetString("MaterialSource.Description", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Vendor.
+        /// </summary>
+        internal static string MaterialSource_Name {
+            get {
+                return ResourceManager.GetString("MaterialSource.Name", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Filament material type (PLA, ABS, TPU, etc.).
+        /// </summary>
+        internal static string MaterialType_Description {
+            get {
+                return ResourceManager.GetString("MaterialType.Description", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Type.
+        /// </summary>
+        internal static string MaterialType_Name {
+            get {
+                return ResourceManager.GetString("MaterialType.Name", resourceCulture);
             }
         }
         

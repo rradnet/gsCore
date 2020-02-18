@@ -143,6 +143,14 @@ namespace gs
             }
         }
 
+        #region Material
+        public string MaterialSource { get; set; } = "Generic";
+        public string MaterialType { get; set; } = "PLA";
+        public string MaterialColor { get; set; } = "Blue";
+
+        public string MaterialName => $"{MaterialSource} {MaterialType} - {MaterialColor}";
+        #endregion
+
         /*
          * Temperatures
          */
