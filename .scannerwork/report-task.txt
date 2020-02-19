@@ -1,0 +1,7 @@
+organization=sutromachine
+projectKey=SutroMachine_gsCore
+serverUrl=https://sonarcloud.io
+serverVersion=8.0.0.4802
+dashboardUrl=https://sonarcloud.io/dashboard?id=SutroMachine_gsCore
+ceTaskId=AXBarGn0JpMS3uzOReLI
+ceTaskUrl=https://sonarcloud.io/api/ce/task?id=AXBarGn0JpMS3uzOReLI

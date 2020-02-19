@@ -1,0 +1,15 @@
+{
+  "ServerUri": "https://sonarcloud.io/",
+  "Organization": {
+    "Key": "sutromachine",
+    "Name": "Sutro Machine"
+  },
+  "ProjectKey": "SutroMachine_gsCore",
+  "ProjectName": "gsCore",
+  "Profiles": {
+    "CSharp": {
+      "ProfileKey": "AXBGBFaKrumzmeMs91g9",
+      "ProfileTimestamp": "2020-01-10T02:36:33-08:00"
+    }
+  }
+}
