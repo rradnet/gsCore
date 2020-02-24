@@ -5,7 +5,6 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using gs.utility;
 
-
 namespace gs
 {
     public class VolumetricBeadVisualizer : IVisualizer
@@ -22,7 +21,10 @@ namespace gs
         protected PrintVertex lastVertex;
 
         public virtual event Action<ToolpathPreviewVertex[], int[], int> OnMeshGenerated;
+
         public virtual event Action<List<Vector3d>, int> OnLineGenerated;
+
+        public virtual event Action<double, int> OnNewPlane;
 
         public string Name => "Bead Visualizer";
 
@@ -42,18 +44,21 @@ namespace gs
             new FixedRangeCustomDataDetails(
                 () => "Bead Width",
                 (value) => $"{value:F2} mm", 0.1f, 0.8f);
+
         public IVisualizerCustomDataDetails CustomDataDetails0 => customDataBeadWidth;
 
         private readonly AdaptiveRangeCustomDataDetails customDataFeedRate =
             new AdaptiveRangeCustomDataDetails(
                 () => "Feed Rate",
                 (value) => $"{value:F0} mm/min");
+
         public IVisualizerCustomDataDetails CustomDataDetails1 => customDataFeedRate;
 
         private readonly NormalizedAdaptiveRangeCustomDataDetails customDataCompletion =
             new NormalizedAdaptiveRangeCustomDataDetails(
                 () => "Completion",
                 (value) => $"{value:P0}");
+
         public IVisualizerCustomDataDetails CustomDataDetails2 => customDataCompletion;
 
         public IVisualizerCustomDataDetails CustomDataDetails3 => null;
@@ -63,6 +68,7 @@ namespace gs
         public void BeginGCodeLineStream()
         {
             lastVertex = new PrintVertex(Vector3d.Zero, 0, Vector2d.Zero);
+            layerIndex = 0;
         }
 
         public virtual void ProcessGCodeLine(GCodeLine line)
@@ -88,12 +94,16 @@ namespace gs
             ExtractDimensions(line, ref dimensions);
             GCodeLineUtil.ExtractFillType(line, ref fillType);
 
+            if (line.comment?.Contains("Plane Change") ?? false)
+            {
+                OnNewPlane(position.z, layerIndex);
+            }
+
             PrintVertex vertex = new PrintVertex(position, feedrate, dimensions)
             {
                 Extrusion = new Vector3d(extrusion, 0, 0),
                 Source = fillType,
             };
-
 
             if (line.type == GCodeLine.LType.GCode)
             {
@@ -142,7 +152,6 @@ namespace gs
 
         protected void Emit(List<PrintVertex> printVertices, int layerIndex, int startPointCount)
         {
-
             List<ToolpathPreviewVertex> vertices = new List<ToolpathPreviewVertex>();
             List<int> triangles = new List<int>();
 
@@ -188,7 +197,6 @@ namespace gs
         {
             for (int i = joints.Length - 2; i >= 0; i--)
             {
-
                 var start = joints[i];
                 var end = joints[i + 1];
 
@@ -228,7 +236,6 @@ namespace gs
 
         protected ToolpathPreviewJoint GenerateMiterJoint(List<PrintVertex> toolpath, int toolpathIndex, int layerIndex, int startPointCount, List<ToolpathPreviewVertex> vertices)
         {
-
             double miterSecant = 1;
             Vector3d miterNormal;
 
@@ -270,7 +277,6 @@ namespace gs
         protected ToolpathPreviewJoint GenerateRightBevelJoint(List<PrintVertex> toolpath, int toolpathIndex,
             int layerIndex, int startPointCount, List<ToolpathPreviewVertex> vertices, List<int> triangles)
         {
-
             Vector3d a = toolpath[toolpathIndex - 1].Position;
             Vector3d b = toolpath[toolpathIndex].Position;
             Vector3d c = toolpath[toolpathIndex + 1].Position;
@@ -310,7 +316,6 @@ namespace gs
         protected ToolpathPreviewJoint GenerateLeftBevelJoint(List<PrintVertex> toolpath, int toolpathIndex,
             int layerIndex, int startPointCount, List<ToolpathPreviewVertex> vertices, List<int> triangles)
         {
-
             Vector3d a = toolpath[toolpathIndex - 1].Position;
             Vector3d b = toolpath[toolpathIndex].Position;
             Vector3d c = toolpath[toolpathIndex + 1].Position;

@@ -7,11 +7,16 @@ namespace gs.interfaces
     public interface IVisualizer
     {
         void BeginGCodeLineStream();
+
         void ProcessGCodeLine(GCodeLine line);
+
         void EndGCodeLineStream();
 
         event Action<ToolpathPreviewVertex[], int[], int> OnMeshGenerated;
+
         event Action<List<Vector3d>, int> OnLineGenerated;
+
+        event Action<double, int> OnNewPlane;
 
         string Name { get; }
         Dictionary<int, FillType> FillTypes { get; }
@@ -22,7 +27,6 @@ namespace gs.interfaces
         IVisualizerCustomDataDetails CustomDataDetails3 { get; }
         IVisualizerCustomDataDetails CustomDataDetails4 { get; }
         IVisualizerCustomDataDetails CustomDataDetails5 { get; }
-
     }
 
     public interface IVisualizerCustomDataDetails
@@ -47,7 +51,6 @@ namespace gs.interfaces
         }
     }
 
-
     public struct ToolpathPreviewVertex
     {
         public Vector3d point;
@@ -61,7 +64,7 @@ namespace gs.interfaces
         public float[] customData;
 
         public ToolpathPreviewVertex(Vector3d point, int fillType, int layerIndex, Vector3f color, float brightness,
-            float? customField0 = null, float? customField1 = null, float? customField2 = null, 
+            float? customField0 = null, float? customField1 = null, float? customField2 = null,
             float? customField3 = null, float? customField4 = null, float? customField5 = null)
         {
             this.point = point;
