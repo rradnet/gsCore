@@ -18,6 +18,8 @@
     <PackageReference Include="MSTest.TestAdapter" Version="1.4.0" />
     <PackageReference Include="MSTest.TestFramework" Version="1.4.0" />
     <PackageReference Include="coverlet.collector" Version="1.0.1" />
+    <PackageReference Include="Sutro.gsSlicer" Version="1.0.1" />
+    <PackageReference Include="Sutro.PathWorks.Plugins.API" Version="1.0.1" />
   </ItemGroup>
 
   <ItemGroup>

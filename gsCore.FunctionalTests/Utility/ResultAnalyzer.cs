@@ -4,6 +4,7 @@ using System.Text.RegularExpressions;
 using gs;
 using gs.utility;
 using gsCore.FunctionalTests.Models;
+using Sutro.PathWorks.Plugins.API;
 
 namespace gsCore.FunctionalTests.Utility
 {

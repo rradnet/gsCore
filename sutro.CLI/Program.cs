@@ -6,8 +6,8 @@ using System.IO;
 using System.Reflection;
 
 using g3;
-using gs.interfaces;
 using gs.engines;
+using Sutro.PathWorks.Plugins.API;
 
 namespace sutro.CLI
 {

@@ -16,12 +16,7 @@
     <PackageReference Include="MSTest.TestAdapter" Version="1.4.0" />
     <PackageReference Include="MSTest.TestFramework" Version="1.4.0" />
     <PackageReference Include="coverlet.collector" Version="1.0.1" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <ProjectReference Include="..\geometry3Sharp\geometry3Sharp.csproj" />
-    <ProjectReference Include="..\gsGCode\gsGCode.csproj" />
-    <ProjectReference Include="..\gsSlicer\gsSlicer.csproj" />
+    <PackageReference Include="Sutro.gsGCode" Version="1.0.0" />
   </ItemGroup>
 
 </Project>

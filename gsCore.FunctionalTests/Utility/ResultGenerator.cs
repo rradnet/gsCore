@@ -2,7 +2,7 @@
 using System.IO;
 using g3;
 using gs;
-using gs.interfaces;
+using Sutro.PathWorks.Plugins.API;
 
 namespace gsCore.FunctionalTests.Utility
 {

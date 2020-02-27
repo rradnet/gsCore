@@ -1,9 +1,9 @@
 ﻿using gs.engines;
 using gs.info;
-using gs.interfaces;
 using gsCore.FunctionalTests.Models;
 using gsCore.FunctionalTests.Utility;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Sutro.PathWorks.Plugins.API;
 
 namespace gsCore.FunctionalTests
 {
