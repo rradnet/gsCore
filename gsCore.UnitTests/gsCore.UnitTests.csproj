@@ -16,7 +16,7 @@
     <PackageReference Include="MSTest.TestAdapter" Version="1.4.0" />
     <PackageReference Include="MSTest.TestFramework" Version="1.4.0" />
     <PackageReference Include="coverlet.collector" Version="1.0.1" />
-    <PackageReference Include="Sutro.gsGCode" Version="1.0.0" />
+    <PackageReference Include="Sutro.gsGCode" Version="1.0.2" />
   </ItemGroup>
 
 </Project>

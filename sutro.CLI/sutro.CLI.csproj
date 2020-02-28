@@ -62,10 +62,10 @@
       <HintPath>$(SolutionDir)\packages\CommandLineParser.2.6.0\lib\net461\CommandLine.dll</HintPath>
     </Reference>
     <Reference Include="geometry3Sharp, Version=1.0.10.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\Sutro.geometry3Sharp.1.0.10\lib\netstandard2.0\geometry3Sharp.dll</HintPath>
+      <HintPath>$(SolutionDir)\packages\Sutro.geometry3Sharp.1.0.10\lib\netstandard2.0\geometry3Sharp.dll</HintPath>
     </Reference>
-    <Reference Include="Sutro.PathWorks.Plugins.API, Version=1.0.1.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\Sutro.PathWorks.Plugins.API.1.0.1\lib\netstandard2.0\Sutro.PathWorks.Plugins.API.dll</HintPath>
+    <Reference Include="Sutro.PathWorks.Plugins.API, Version=2.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>$(SolutionDir)\packages\Sutro.PathWorks.Plugins.API.2.0.0\lib\netstandard2.0\Sutro.PathWorks.Plugins.API.dll</HintPath>
     </Reference>
     <Reference Include="System.ComponentModel.Composition" />
   </ItemGroup>

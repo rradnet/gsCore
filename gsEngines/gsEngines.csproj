@@ -6,8 +6,8 @@
 
   <ItemGroup>
     <PackageReference Include="Newtonsoft.Json" Version="12.0.3" />
-    <PackageReference Include="Sutro.gsSlicer" Version="1.0.1" />
-    <PackageReference Include="Sutro.PathWorks.Plugins.API" Version="1.0.1" />
+    <PackageReference Include="Sutro.gsSlicer" Version="1.0.3" />
+    <PackageReference Include="Sutro.PathWorks.Plugins.API" Version="2.0.0" />
     <PackageReference Include="System.ComponentModel.Composition" Version="4.7.0" />
   </ItemGroup>
 
