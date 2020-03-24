@@ -83,7 +83,7 @@ namespace gs
 		public bool OmitDuplicateE = false;
 
         // threshold for omitting "duplicate" Z/F/E parameters
-        public double MoveEpsilon = 0.00001;
+        public static double MoveEpsilon { get; } = 0.00001;
 
 
         public BaseDepositionAssembler(GCodeBuilder useBuilder, FFFMachineInfo machineInfo) 

@@ -109,7 +109,7 @@ namespace gs
             {
                 if (toolpath == null)
                 {
-                    if (extrusion > lastVertex.Extrusion.x)
+                    if (extrusion > lastVertex.Extrusion.x && !position.EpsilonEqual(lastVertex.Position, BaseDepositionAssembler.MoveEpsilon))
                     {
                         lastVertex.Source = fillType;
                         lastVertex.Dimensions = vertex.Dimensions;
@@ -125,6 +125,10 @@ namespace gs
                 }
                 else
                 {
+                    if (vertex.Position.EpsilonEqual(toolpath[toolpath.Count - 1].Position, BaseDepositionAssembler.MoveEpsilon))
+                    {
+
+                    }
                     toolpath.Add(vertex);
                     if (extrusion <= lastVertex.Extrusion.x)
                     {
