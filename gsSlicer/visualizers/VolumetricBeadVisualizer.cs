@@ -69,6 +69,7 @@ namespace gs
         {
             lastVertex = new PrintVertex(Vector3d.Zero, 0, Vector2d.Zero);
             layerIndex = 0;
+            pointCount = 0;
         }
 
         public virtual void ProcessGCodeLine(GCodeLine line)
