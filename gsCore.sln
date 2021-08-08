@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio Version 16
-VisualStudioVersion = 16.0.29326.143
+# Visual Studio Version 17
+VisualStudioVersion = 17.0.31521.260
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "geometry3Sharp", "geometry3Sharp\geometry3Sharp.csproj", "{0C518DDA-28FE-44CA-9AB0-F9773974F13A}"
 EndProject
@@ -20,6 +20,8 @@ EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "gsEngines", "gsEngines\gsEngines.csproj", "{6C7EA487-C428-43F2-A84C-64E320D73F92}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "gsCore.FunctionalTests", "gsCore.FunctionalTests\gsCore.FunctionalTests.csproj", "{92457859-661F-4EDA-8596-B4542DC2CE84}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FixTronxy", "..\CuraProfile\FixTronxy\FixTronxy\FixTronxy.csproj", "{F4546F0C-6709-4823-9558-5A4AA916390C}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -101,6 +103,14 @@ Global
 		{92457859-661F-4EDA-8596-B4542DC2CE84}.Release|Any CPU.Build.0 = Release|Any CPU
 		{92457859-661F-4EDA-8596-B4542DC2CE84}.Release|x64.ActiveCfg = Release|Any CPU
 		{92457859-661F-4EDA-8596-B4542DC2CE84}.Release|x64.Build.0 = Release|Any CPU
+		{F4546F0C-6709-4823-9558-5A4AA916390C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F4546F0C-6709-4823-9558-5A4AA916390C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F4546F0C-6709-4823-9558-5A4AA916390C}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{F4546F0C-6709-4823-9558-5A4AA916390C}.Debug|x64.Build.0 = Debug|Any CPU
+		{F4546F0C-6709-4823-9558-5A4AA916390C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F4546F0C-6709-4823-9558-5A4AA916390C}.Release|Any CPU.Build.0 = Release|Any CPU
+		{F4546F0C-6709-4823-9558-5A4AA916390C}.Release|x64.ActiveCfg = Release|Any CPU
+		{F4546F0C-6709-4823-9558-5A4AA916390C}.Release|x64.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
