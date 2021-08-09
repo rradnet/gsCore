@@ -21,8 +21,6 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "gsEngines", "gsEngines\gsEn
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "gsCore.FunctionalTests", "gsCore.FunctionalTests\gsCore.FunctionalTests.csproj", "{92457859-661F-4EDA-8596-B4542DC2CE84}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FixTronxy", "..\CuraProfile\FixTronxy\FixTronxy\FixTronxy.csproj", "{F4546F0C-6709-4823-9558-5A4AA916390C}"
-EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -103,14 +101,6 @@ Global
 		{92457859-661F-4EDA-8596-B4542DC2CE84}.Release|Any CPU.Build.0 = Release|Any CPU
 		{92457859-661F-4EDA-8596-B4542DC2CE84}.Release|x64.ActiveCfg = Release|Any CPU
 		{92457859-661F-4EDA-8596-B4542DC2CE84}.Release|x64.Build.0 = Release|Any CPU
-		{F4546F0C-6709-4823-9558-5A4AA916390C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{F4546F0C-6709-4823-9558-5A4AA916390C}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{F4546F0C-6709-4823-9558-5A4AA916390C}.Debug|x64.ActiveCfg = Debug|Any CPU
-		{F4546F0C-6709-4823-9558-5A4AA916390C}.Debug|x64.Build.0 = Debug|Any CPU
-		{F4546F0C-6709-4823-9558-5A4AA916390C}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{F4546F0C-6709-4823-9558-5A4AA916390C}.Release|Any CPU.Build.0 = Release|Any CPU
-		{F4546F0C-6709-4823-9558-5A4AA916390C}.Release|x64.ActiveCfg = Release|Any CPU
-		{F4546F0C-6709-4823-9558-5A4AA916390C}.Release|x64.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
