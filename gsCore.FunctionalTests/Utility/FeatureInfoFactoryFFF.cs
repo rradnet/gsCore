@@ -2,7 +2,6 @@
 using g3;
 using gs;
 using gsCore.FunctionalTests.Models;
-using Microsoft.VisualStudio.TestPlatform.ObjectModel;
 
 namespace gsCore.FunctionalTests.Utility
 {
